@@ -1,0 +1,48 @@
+buildscript {
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.0.4'  // Ensure you have the appropriate version
+        classpath 'com.google.gms:google-services:4.4.2'  // Add Google Services classpath
+    }
+}
+
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "com.google.gms.google-services"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.ridewealthassistant.app"
+    compileSdkVersion 34  // Updated compileSdkVersion to 34
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId "com.ridewealthassistant.app"
+        minSdkVersion 21  // Updated minSdkVersion
+        targetSdkVersion 34  // Updated targetSdkVersion to match compileSdkVersion
+        versionCode flutter.versionCode
+        versionName flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+// The 'apply plugin' line remains here as it applies the plugin to the module
+apply plugin: 'com.google.gms.google-services'
