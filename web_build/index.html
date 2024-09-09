@@ -20,22 +20,6 @@
   <title>RideWealth Assistant</title>
   <link rel="manifest" href="manifest.json">
 
-  <script>
-    const serviceWorkerVersion = ""1386518784"";
-  </script>
-  <script src="flutter.js" defer></script>
-</head>
-<body>
-  <script>
-    window.addEventListener('load', function(ev) {
-      _flutter.loader.load({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        }
-      });
-    });
-  </script>
-  
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
@@ -55,6 +39,27 @@
     };
     firebase.initializeApp(firebaseConfig);
     firebase.analytics();
+  </script>
+
+  <script>
+    const serviceWorkerVersion = "1386518784";
+  </script>
+  <script src="flutter.js" defer></script>
+</head>
+<body>
+  <script>
+    window.addEventListener('load', function(ev) {
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
   </script>
 </body>
 </html>
