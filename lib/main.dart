@@ -12,6 +12,10 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeFirebase();
+  if (Firebase.apps.isEmpty) {
+    print(
+        'Firebase initialization failed. The app may not function correctly.');
+  }
   runApp(
     MultiProvider(
       providers: [
@@ -30,16 +34,21 @@ Future<void> initializeFirebase() async {
     );
   } catch (e) {
     print('Failed to initialize Firebase: $e');
-    // You might want to show an error dialog here
   }
 }
 
 class AuthState extends ChangeNotifier {
   User? user;
+  bool isLoading = true;
 
   AuthState() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       this.user = user;
+      isLoading = false;
+      notifyListeners();
+    }, onError: (error) {
+      print('Error in auth state changes: $error');
+      isLoading = false;
       notifyListeners();
     });
   }
@@ -50,6 +59,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<AuthState, ThemeProvider>(
       builder: (context, authState, themeProvider, _) {
+        if (authState.isLoading) {
+          return MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        }
         return MaterialApp(
           title: 'RideWealth Assistant',
           debugShowCheckedModeBanner: false,
@@ -93,11 +107,13 @@ class AuthScreen extends StatelessWidget {
           AppleIDAuthorizationScopes.fullName,
         ],
       );
+
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
       );
-      return await _auth.signInWithCredential(oauthCredential);
+
+      return await FirebaseAuth.instance.signInWithCredential(oauthCredential);
     } catch (e) {
       print('Error signing in with Apple: $e');
       return null;
@@ -126,13 +142,27 @@ class AuthScreen extends StatelessWidget {
             ElevatedButton(
               child: Text('Sign in with Google'),
               onPressed: () async {
-                await _signInWithGoogle();
+                final result = await _signInWithGoogle();
+                if (result == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Failed to sign in with Google. Please try again.')),
+                  );
+                }
               },
             ),
             ElevatedButton(
               child: Text('Sign in with Apple'),
               onPressed: () async {
-                await _signInWithApple();
+                final result = await _signInWithApple();
+                if (result == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Failed to sign in with Apple. Please try again.')),
+                  );
+                }
               },
             ),
             ElevatedButton(
@@ -193,8 +223,15 @@ class _EmailPasswordDialogState extends State<EmailPasswordDialog> {
         ElevatedButton(
           child: Text('Sign In'),
           onPressed: () async {
-            await widget.onSignIn(
+            final result = await widget.onSignIn(
                 _emailController.text, _passwordController.text);
+            if (result == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                        'Failed to sign in. Please check your email and password.')),
+              );
+            }
             Navigator.of(context).pop();
           },
         ),
