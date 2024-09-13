@@ -9,7 +9,7 @@
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<string>com.example.ridewealthAssistant</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
@@ -50,7 +50,7 @@
 			<dict>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.ridewealthassistant.app</string>
+					<string>com.example.ridewealthAssistant</string>
 				</array>
 			</dict>
 		</array>
