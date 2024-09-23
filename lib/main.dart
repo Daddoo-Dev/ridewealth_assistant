@@ -107,15 +107,21 @@ class AuthScreen extends StatelessWidget {
           AppleIDAuthorizationScopes.fullName,
         ],
       );
+      print('Apple credential received: ${appleCredential.toString()}');
 
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
       );
+      print('OAuth credential created');
 
       return await FirebaseAuth.instance.signInWithCredential(oauthCredential);
     } catch (e) {
       print('Error signing in with Apple: $e');
+      if (e is SignInWithAppleAuthorizationException) {
+        print('Apple Sign In Exception Code: ${e.code}');
+        print('Apple Sign In Exception Message: ${e.message}');
+      }
       return null;
     }
   }
