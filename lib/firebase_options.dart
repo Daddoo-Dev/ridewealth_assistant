@@ -70,8 +70,10 @@ class DefaultFirebaseOptions {
     projectId: 'uberdriver-2941d',
     databaseURL: 'https://uberdriver-2941d-default-rtdb.firebaseio.com',
     storageBucket: 'uberdriver-2941d.appspot.com',
-    androidClientId: '171871758415-es04tgqjoduq5psa16uvudtbo9gik21a.apps.googleusercontent.com',
-    iosClientId: '171871758415-usbuo6dk3tbcp4blio557lude8ptu83q.apps.googleusercontent.com',
+    androidClientId:
+        '171871758415-es04tgqjoduq5psa16uvudtbo9gik21a.apps.googleusercontent.com',
+    iosClientId:
+        '171871758415-usbuo6dk3tbcp4blio557lude8ptu83q.apps.googleusercontent.com',
     iosBundleId: 'com.example.ridewealthAssistant',
   );
 
@@ -82,9 +84,10 @@ class DefaultFirebaseOptions {
     projectId: 'uberdriver-2941d',
     databaseURL: 'https://uberdriver-2941d-default-rtdb.firebaseio.com',
     storageBucket: 'uberdriver-2941d.appspot.com',
-    androidClientId: '171871758415-es04tgqjoduq5psa16uvudtbo9gik21a.apps.googleusercontent.com',
-    iosClientId: '171871758415-usbuo6dk3tbcp4blio557lude8ptu83q.apps.googleusercontent.com',
+    androidClientId:
+        '171871758415-es04tgqjoduq5psa16uvudtbo9gik21a.apps.googleusercontent.com',
+    iosClientId:
+        '171871758415-usbuo6dk3tbcp4blio557lude8ptu83q.apps.googleusercontent.com',
     iosBundleId: 'com.example.ridewealthAssistant',
   );
-
 }
