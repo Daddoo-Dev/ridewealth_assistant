@@ -8,40 +8,31 @@ import 'disclaimer_screen.dart';
 import 'contact_screen.dart';
 import 'profile_screen.dart';
 
-class UserScreen extends StatefulWidget {
-  @override
-  _UserScreenState createState() => _UserScreenState();
-}
-
-class _UserScreenState extends State<UserScreen> {
-  bool showConfirmation = false;
-
-  void openConfirmation() {
-    setState(() {
-      showConfirmation = true;
-    });
-  }
-
-  void closeConfirmation() {
-    setState(() {
-      showConfirmation = false;
-    });
-  }
-
-  Future<void> handleSignOut() async {
+class UserScreen extends StatelessWidget {
+  Future<void> handleSignOut(BuildContext context) async {
+    print("Sign out button pressed");
     try {
       await FirebaseAuth.instance.signOut();
+      print("Firebase sign out successful");
+
+      // Update AuthState
+      Provider.of<AuthState>(context, listen: false).user = null;
+      print("AuthState updated");
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('You have been signed out.')),
       );
+      print("Snackbar shown");
+
+      // Navigate back to the main screen
       Navigator.of(context).pushReplacementNamed('/');
+      print("Navigation attempted");
     } catch (error) {
       print('Error signing out: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error signing out. Please try again.')),
       );
     }
-    closeConfirmation();
   }
 
   Widget _buildButton(String text, VoidCallback onPressed, {Color? color}) {
@@ -60,8 +51,6 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<AuthState>(context).user;
-
     return SafeArea(
       child: SingleChildScrollView(
         child: Padding(
@@ -110,7 +99,7 @@ class _UserScreenState extends State<UserScreen> {
               SizedBox(height: 24),
               _buildButton(
                 'Sign Out',
-                openConfirmation,
+                () => handleSignOut(context),
                 color: Colors.red,
               ),
             ],
