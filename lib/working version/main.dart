@@ -102,10 +102,7 @@ class MyApp extends StatelessWidget {
 
 class AuthScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
-        '171871758415-4qg24772j76t2p2obktl1kt3pjp4ager.apps.googleusercontent.com',
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   String generateNonce([int length = 32]) {
     const charset =

@@ -9,80 +9,24 @@
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="ridewealth_assistant">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>RideWealth Assistant</title>
   <link rel="manifest" href="manifest.json">
 
   <script>
-    const serviceWorkerVersion = "{{flutter_service_worker_version}}";
+    // The value below is injected by flutter build, do not touch.
+    var serviceWorkerVersion = null;
   </script>
+  <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
-  <meta name="google-signin-client_id" content="171871758415-4qg24772j76t2p2obktl1kt3pjp4ager.apps.googleusercontent.com">
-  <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
 </head>
 <body>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-crashlytics-compat.js"></script>
-  
-  <!-- Firebase Configuration -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyB_RUxx3je5Pz8DOYItm5wZ19ExVSNujBM",
-      authDomain: "uberdriver-2941d.firebaseapp.com",
-      databaseURL: "https://uberdriver-2941d-default-rtdb.firebaseio.com",
-      projectId: "uberdriver-2941d",
-      storageBucket: "uberdriver-2941d.appspot.com",
-      messagingSenderId: "171871758415",
-      appId: "1:171871758415:web:1b6c5539d4ec384229623a",
-      measurementId: "G-DJ07PFFDQK",
-      iosApiKey: "AIzaSyCdRkt2qLyIRBKHJgcReRhadECokSGQFk4",
-      iosAppId: "1:171871758415:ios:c3579660852bee0529623a",
-      iosClientId: "171871758415-usbuo6dk3tbcp4blio557lude8ptu83q.apps.googleusercontent.com",
-      iosBundleId: "com.ridewealthAssistant.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    firebase.analytics();
-
-    // Enable Crashlytics data collection
-    firebase.crashlytics().setCrashlyticsCollectionEnabled(true);
-
-    // Custom error logging function
-    function logError(error, context = 'Unspecified') {
-      console.error(`Error in ${context}:`, error);
-      firebase.crashlytics().log(`Error in ${context}: ${error.message}`);
-      firebase.crashlytics().recordError(error);
-    }
-
-    // Capture and log unhandled promises
-    window.addEventListener('unhandledrejection', function(event) {
-      logError(event.reason, 'Unhandled Promise Rejection');
-    });
-
-    // Capture and log uncaught errors
-    window.onerror = function(message, source, lineno, colno, error) {
-      logError(error || new Error(message), 'Uncaught Exception');
-      return false;
-    };
-
-    // Log page views for analytics
-    firebase.analytics().logEvent('page_view', {
-      page_title: document.title,
-      page_location: window.location.href,
-      page_path: window.location.pathname
-    });
-  </script>
-
   <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
@@ -93,50 +37,10 @@
         onEntrypointLoaded: function(engineInitializer) {
           engineInitializer.initializeEngine().then(function(appRunner) {
             appRunner.runApp();
-          }).catch(function(error) {
-            logError(error, 'Flutter Initialization');
           });
         }
       });
     });
-  </script>
-
-  <!-- Google Sign-In SDK -->
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
-
-  <!-- Apple Sign-In SDK -->
-  <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
-
-  <!-- Performance monitoring -->
-  <script>
-    // Log time to interactive
-    window.addEventListener('DOMContentLoaded', (event) => {
-      firebase.analytics().logEvent('time_to_interactive', {
-        time: performance.now()
-      });
-    });
-
-    // Log first input delay
-    let firstInputDelay;
-    new PerformanceObserver((entryList) => {
-      for (const entry of entryList.getEntries()) {
-        if (!firstInputDelay) {
-          firstInputDelay = entry.processingStart - entry.startTime;
-          firebase.analytics().logEvent('first_input_delay', {
-            delay: firstInputDelay
-          });
-        }
-      }
-    }).observe({type: 'first-input', buffered: true});
-
-    // Log largest contentful paint
-    new PerformanceObserver((entryList) => {
-      for (const entry of entryList.getEntries()) {
-        firebase.analytics().logEvent('largest_contentful_paint', {
-          time: entry.startTime
-        });
-      }
-    }).observe({type: 'largest-contentful-paint', buffered: true});
   </script>
 </body>
 </html>
