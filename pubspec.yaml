@@ -29,6 +29,7 @@ dependencies:
   firebase_crashlytics: ^3.5.7
   logging: ^1.2.0
   crypto: ^3.0.3
+  fluttertoast: ^8.2.8
 
 dev_dependencies:
   flutter_test:
