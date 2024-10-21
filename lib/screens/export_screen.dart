@@ -279,18 +279,23 @@ class _ExportScreenState extends State<ExportScreen> {
   Future<void> _saveCsvFile(String csv, String fileName) async {
     try {
       if (Platform.isAndroid) {
-        // Use Storage Access Framework on Android
-        final result = await platform.invokeMethod('createAndSaveFile', {
-          'fileName': fileName,
-          'content': csv,
-        });
-        if (result == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('CSV file saved successfully')),
-          );
+        final String? uri =
+            await platform.invokeMethod('createFile', {'fileName': fileName});
+        if (uri != null) {
+          final bool success = await platform
+              .invokeMethod('writeFile', {'uri': uri, 'content': csv});
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('CSV file saved successfully')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to save CSV file')),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save CSV file')),
+            SnackBar(content: Text('File save cancelled')),
           );
         }
       } else if (Platform.isIOS) {
