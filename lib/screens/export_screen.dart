@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../mileage_rates.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -21,6 +21,9 @@ class _ExportScreenState extends State<ExportScreen> {
   String error = '';
   String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
   List<Map<String, dynamic>> exportData = [];
+
+  static const platform =
+      MethodChannel('com.ridewealthassistant.app/file_saver');
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +81,7 @@ class _ExportScreenState extends State<ExportScreen> {
     );
   }
 
-Future<void> handleExport() async {
+  Future<void> handleExport() async {
     if (!userAuthenticated()) {
       setState(() {
         error = 'User not authenticated';
@@ -124,6 +127,7 @@ Future<void> handleExport() async {
     return uid.isNotEmpty;
   }
 
+  // ... (continued in part 2)
   Future<List<Map<String, dynamic>>> fetchExpenses() async {
     final startOfYear = DateTime(selectedYear, 1, 1);
     final endOfYear = DateTime(selectedYear, 12, 31, 23, 59, 59);
@@ -276,24 +280,17 @@ Future<void> handleExport() async {
   Future<void> _saveCsvFile(String csv, String fileName) async {
     try {
       if (Platform.isAndroid) {
-        // Use Storage Access Framework on Android
-        final result = await FilePicker.platform.saveFile(
-          dialogTitle: 'Save CSV file',
-          fileName: fileName,
-          type: FileType.custom,
-          allowedExtensions: ['csv'],
-        );
-
-        if (result != null) {
-          final file = File(result);
-          await file.writeAsString(csv);
+        final String? uri =
+            await platform.invokeMethod('createFile', {'fileName': fileName});
+        if (uri != null) {
+          await platform
+              .invokeMethod('writeFile', {'uri': uri, 'content': csv});
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('CSV file saved successfully')),
           );
         } else {
-          // User canceled the picker
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('File save canceled')),
+            SnackBar(content: Text('File save cancelled')),
           );
         }
       } else if (Platform.isIOS) {
