@@ -127,7 +127,6 @@ class _ExportScreenState extends State<ExportScreen> {
     return uid.isNotEmpty;
   }
 
-  // ... (continued in part 2)
   Future<List<Map<String, dynamic>>> fetchExpenses() async {
     final startOfYear = DateTime(selectedYear, 1, 1);
     final endOfYear = DateTime(selectedYear, 12, 31, 23, 59, 59);
@@ -280,17 +279,18 @@ class _ExportScreenState extends State<ExportScreen> {
   Future<void> _saveCsvFile(String csv, String fileName) async {
     try {
       if (Platform.isAndroid) {
-        final String? uri =
-            await platform.invokeMethod('createFile', {'fileName': fileName});
-        if (uri != null) {
-          await platform
-              .invokeMethod('writeFile', {'uri': uri, 'content': csv});
+        // Use Storage Access Framework on Android
+        final result = await platform.invokeMethod('createAndSaveFile', {
+          'fileName': fileName,
+          'content': csv,
+        });
+        if (result == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('CSV file saved successfully')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('File save cancelled')),
+            SnackBar(content: Text('Failed to save CSV file')),
           );
         }
       } else if (Platform.isIOS) {
