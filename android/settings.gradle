@@ -22,7 +22,11 @@ plugins {
     // START: FlutterFire Configuration
     id "com.google.gms.google-services" version "4.3.15" apply false
     // END: FlutterFire Configuration
+<<<<<<< HEAD
     id "org.jetbrains.kotlin.android" version "1.9.22" apply false
+=======
+    id "org.jetbrains.kotlin.android" version "1.7.10" apply false
+>>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 }
 
 include ":app"

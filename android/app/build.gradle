@@ -2,7 +2,10 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+<<<<<<< HEAD
     id "com.google.firebase.crashlytics"  // Add this line
+=======
+>>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 }
 
 def keystoreProperties = new Properties()
@@ -75,6 +78,7 @@ flutter {
     source = "../.."
 }
 
+<<<<<<< HEAD
 dependencies {
     // Add these lines
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
@@ -82,5 +86,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics'
 }
 
+=======
+>>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 // The 'apply plugin' line remains here as it applies the plugin to the module
 apply plugin: 'com.google.gms.google-services'
