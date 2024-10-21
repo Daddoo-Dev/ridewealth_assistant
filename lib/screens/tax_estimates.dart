@@ -37,7 +37,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
   Map<String, dynamic>? taxEstimates;
   String error = "";
 
-<<<<<<< HEAD
   double federalRate = 0.15;
   double stateRate = 0.05;
   double customMileageRate = 0.0;
@@ -45,10 +44,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
   int federalRatePercentage = 15;
   int stateRatePercentage = 5;
   int customMileageRateCents = 0;
-=======
-  final double IRS_RATE = 0.15;
-  final double STATE_RATE = 0.05;
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 
   final List<String> periods = [
     "Q1 2024",
@@ -67,7 +62,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
   void initState() {
     super.initState();
     user = FirebaseAuth.instance.currentUser;
-<<<<<<< HEAD
     loadUserRates();
   }
 
@@ -104,8 +98,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
         'customMileageRate': customMileageRate,
       }, SetOptions(merge: true));
     }
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
   }
 
   @override
@@ -123,11 +115,8 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
               ),
               SizedBox(height: 20),
               _buildPeriodSelectDropdown(),
-<<<<<<< HEAD
               SizedBox(height: 20),
               _buildRateInputs(),
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
               if (error.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -177,7 +166,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
     );
   }
 
-<<<<<<< HEAD
   Widget _buildRateInputs() {
     return Column(
       children: [
@@ -256,8 +244,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
     );
   }
 
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
   Future<void> fetchData() async {
     if (user == null || selectedPeriod.isEmpty) {
       setState(() {
@@ -358,18 +344,12 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
     double totalMileageDeduction = calculateMileageDeduction(mileage);
 
     Map<String, double> grossTaxEstimate = {
-<<<<<<< HEAD
       'irs': totalIncome * federalRate,
       'state': totalIncome * stateRate,
-=======
-      'irs': totalIncome * IRS_RATE,
-      'state': totalIncome * STATE_RATE,
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
     };
 
     double netIncomeNoMileage = totalIncome - totalExpenses;
     Map<String, double> netTaxEstimateNoMileage = {
-<<<<<<< HEAD
       'irs': math.max(0, netIncomeNoMileage * federalRate),
       'state': math.max(0, netIncomeNoMileage * stateRate),
     };
@@ -381,17 +361,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
     Map<String, double> netTaxEstimate = {
       'irs': math.max(0, netIncomeFederal * federalRate),
       'state': math.max(0, netIncomeState * stateRate),
-=======
-      'irs': math.max(0, netIncomeNoMileage * IRS_RATE),
-      'state': math.max(0, netIncomeNoMileage * STATE_RATE),
-    };
-
-    double netIncomeWithMileage =
-        totalIncome - totalExpenses - totalMileageDeduction;
-    Map<String, double> netTaxEstimate = {
-      'irs': math.max(0, netIncomeWithMileage * IRS_RATE),
-      'state': math.max(0, netIncomeWithMileage * STATE_RATE),
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
     };
 
     setState(() {
@@ -414,13 +383,9 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
           entry['startDate'] != null) {
         final milesDriven =
             (entry['endMileage'] as num) - (entry['startMileage'] as num);
-<<<<<<< HEAD
         final rate = customMileageRate > 0
             ? customMileageRate
             : mileageCalculator.getMileageRate(entry['startDate']);
-=======
-        final rate = mileageCalculator.getMileageRate(entry['startDate']);
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
         final deduction = milesDriven * rate;
         totalDeduction += deduction;
         print(
@@ -445,17 +410,6 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
                 style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: 8),
             Text(
-<<<<<<< HEAD
-              'Total Income: ${taxEstimates!['totalIncome'].toStringAsFixed(2)}',
-              style: TextStyle(color: AppThemes.primaryColor),
-            ),
-            Text(
-              'Total Expenses: ${taxEstimates!['totalExpenses'].toStringAsFixed(2)}',
-              style: TextStyle(color: Colors.red),
-            ),
-            Text(
-              'Total Mileage Deduction: ${taxEstimates!['totalMileageDeduction'].toStringAsFixed(2)}',
-=======
               'Total Income: \$${taxEstimates!['totalIncome'].toStringAsFixed(2)}',
               style: TextStyle(color: AppThemes.primaryColor),
             ),
@@ -465,56 +419,34 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
             ),
             Text(
               'Total Mileage Deduction: \$${taxEstimates!['totalMileageDeduction'].toStringAsFixed(2)}',
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
               style: TextStyle(color: Colors.green),
             ),
             Divider(),
             Text('1. Gross Tax Estimate',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             Text(
-<<<<<<< HEAD
-              'IRS Payment: ${taxEstimates!['grossTaxEstimate']['irs'].toStringAsFixed(2)}',
-            ),
-            Text(
-              'State Payment: ${taxEstimates!['grossTaxEstimate']['state'].toStringAsFixed(2)}',
-=======
               'IRS Payment: \$${taxEstimates!['grossTaxEstimate']['irs'].toStringAsFixed(2)}',
             ),
             Text(
               'State Payment: \$${taxEstimates!['grossTaxEstimate']['state'].toStringAsFixed(2)}',
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
             ),
             SizedBox(height: 8),
             Text('2. Net Tax Estimate (Without Mileage Deductions)',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             Text(
-<<<<<<< HEAD
-              'IRS Payment: ${taxEstimates!['netTaxEstimateNoMileage']['irs'].toStringAsFixed(2)}',
-            ),
-            Text(
-              'State Payment: ${taxEstimates!['netTaxEstimateNoMileage']['state'].toStringAsFixed(2)}',
-=======
               'IRS Payment: \$${taxEstimates!['netTaxEstimateNoMileage']['irs'].toStringAsFixed(2)}',
             ),
             Text(
               'State Payment: \$${taxEstimates!['netTaxEstimateNoMileage']['state'].toStringAsFixed(2)}',
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
             ),
             SizedBox(height: 8),
             Text('3. Net Tax Estimate (With Mileage Deductions)',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             Text(
-<<<<<<< HEAD
-              'IRS Payment: ${taxEstimates!['netTaxEstimate']['irs'].toStringAsFixed(2)}',
-            ),
-            Text(
-              'State Payment: ${taxEstimates!['netTaxEstimate']['state'].toStringAsFixed(2)}',
-=======
               'IRS Payment: \$${taxEstimates!['netTaxEstimate']['irs'].toStringAsFixed(2)}',
             ),
             Text(
               'State Payment: \$${taxEstimates!['netTaxEstimate']['state'].toStringAsFixed(2)}',
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
             ),
           ],
         ),
@@ -527,17 +459,10 @@ class _EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Text(
-<<<<<<< HEAD
           "Gross Tax Estimate is the total income * federal rate and total income * state rate.\n"
           "Net Tax Estimate (Without Mileage Deductions) is the total income less expenses * federal rate and total income * state rate.\n"
           "Net Tax Estimate (With Mileage Deductions) applies the mileage deduction only to federal taxes. It is calculated as: (total income - expenses - mileage deduction) * federal rate for IRS, and (total income - expenses) * state rate for state taxes.\n"
           'RideWealth Assistant is designed solely for informational purposes and does not offer tax, legal, or accounting advice. The content provided should not be construed as such advice, and reliance on it for tax, legal, or accounting matters without professional consultation is not recommended. It is advisable to seek guidance from your own tax, legal, and accounting advisors before making any decisions or transactions.',
-=======
-          "This estimate uses an IRS rate of 15% and a state rate of 5%.\n"
-          "Gross Tax Estimate is the total income * IRS rate (15%) and total income * state rate (5%).\n"
-          "Net Tax Estimate (Without Mileage Deductions) is the total income less expenses * IRS rate (15%) and total income * state rate (5%).\n"
-          "Net Tax Estimate (With Mileage Deductions) is the total income less expenses and less mileage deduction * IRS rate (15%) and total income * state rate (5%).",
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),

@@ -1,15 +1,14 @@
 buildscript {
+    ext.kotlin_version = '1.7.10' // Add this line to define Kotlin version
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0' // Use the latest version
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // Add this line
         classpath 'com.google.gms:google-services:4.4.0'
-<<<<<<< HEAD
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'  // Add this line
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
     }
 }
 

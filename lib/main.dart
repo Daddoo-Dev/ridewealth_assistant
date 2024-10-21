@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-<<<<<<< HEAD
-=======
-import 'package:google_sign_in/google_sign_in.dart';
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -12,20 +8,14 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'dart:math';
-<<<<<<< HEAD
 import 'package:cloud_firestore/cloud_firestore.dart';
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 import 'screens/main_screen.dart';
 import 'theme/app_themes.dart';
 import 'theme/theme_provider.dart';
 import 'firebase_options.dart';
-<<<<<<< HEAD
 import 'subscription_manager.dart';
 import 'screens/privacy_policy.dart';
 import 'subscription_required.dart';
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,21 +96,16 @@ class MyApp extends StatelessWidget {
           theme: AppThemes.lightTheme,
           darkTheme: AppThemes.darkTheme,
           themeMode: themeProvider.themeMode,
-<<<<<<< HEAD
           home: authState.user != null ? AuthenticationWrapper() : AuthScreen(),
           routes: {
             '/privacy_policy': (context) => PrivacyPolicyPage(),
           },
-=======
-          home: authState.user != null ? MainScreen() : AuthScreen(),
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
         );
       },
     );
   }
 }
 
-<<<<<<< HEAD
 class AuthenticationWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -142,7 +127,7 @@ class AuthenticationWrapper extends StatelessWidget {
                 if (subscriptionSnapshot.data!) {
                   return MainScreen();
                 } else {
-                  return SubscriptionRequiredScreen(); // This now uses the imported class
+                  return SubscriptionRequiredScreen();
                 }
               } else {
                 return Scaffold(
@@ -164,14 +149,6 @@ class AuthenticationWrapper extends StatelessWidget {
 class AuthScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-=======
-class AuthScreen extends StatelessWidget {
-  final FirebaseAuth auth = FirebaseAuth.instance;
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    clientId:
-        '171871758415-4qg24772j76t2p2obktl1kt3pjp4ager.apps.googleusercontent.com',
-  );
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
 
   String generateNonce([int length = 32]) {
     const charset =
@@ -187,7 +164,6 @@ class AuthScreen extends StatelessWidget {
     return digest.toString();
   }
 
-<<<<<<< HEAD
   Future<void> createUserDocument(User user) async {
     final userDoc = _firestore.collection('users').doc(user.uid);
     final docSnapshot = await userDoc.get();
@@ -197,7 +173,6 @@ class AuthScreen extends StatelessWidget {
         'email': user.email,
         'createdAt': FieldValue.serverTimestamp(),
         'lastLogin': FieldValue.serverTimestamp(),
-        // Add any other initial fields you want for new users
       });
     } else {
       await userDoc.update({
@@ -217,9 +192,9 @@ class AuthScreen extends StatelessWidget {
 
       UserCredential userCredential;
       if (kIsWeb) {
-        userCredential = await auth.signInWithPopup(googleProvider);
+        userCredential = await _auth.signInWithPopup(googleProvider);
       } else {
-        final googleUser = await auth.signInWithProvider(googleProvider);
+        final googleUser = await _auth.signInWithProvider(googleProvider);
         userCredential = googleUser;
       }
 
@@ -243,30 +218,6 @@ class AuthScreen extends StatelessWidget {
       await FirebaseCrashlytics.instance.recordError(e, stackTrace);
       await FirebaseCrashlytics.instance.sendUnsentReports();
 
-=======
-  Future<UserCredential?> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) return null;
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      print('User email: ${googleUser.email}');
-      print('User display name: ${googleUser.displayName}');
-      print('User photo URL: ${googleUser.photoUrl}');
-
-      return await FirebaseAuth.instance.signInWithCredential(credential);
-    } catch (e) {
-      print('Detailed error signing in with Google: $e');
-      if (!kIsWeb) {
-        await FirebaseCrashlytics.instance.recordError(e, StackTrace.current);
-      }
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
       return null;
     }
   }
@@ -277,10 +228,6 @@ class AuthScreen extends StatelessWidget {
       final nonce = sha256ofString(rawNonce);
 
       if (kIsWeb) {
-<<<<<<< HEAD
-=======
-        // Web implementation
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
         final provider = OAuthProvider("apple.com")
           ..addScope('email')
           ..addScope('name')
@@ -291,7 +238,6 @@ class AuthScreen extends StatelessWidget {
         print('Attempting to sign in with Apple on Web');
         final result = await FirebaseAuth.instance.signInWithPopup(provider);
         print('Web Apple Sign In successful: ${result.user?.uid}');
-<<<<<<< HEAD
 
         if (result.user != null) {
           await createUserDocument(result.user!);
@@ -299,11 +245,6 @@ class AuthScreen extends StatelessWidget {
 
         return result;
       } else {
-=======
-        return result;
-      } else {
-        // Mobile implementation
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
         final appleCredential = await SignInWithApple.getAppleIDCredential(
           scopes: [
             AppleIDAuthorizationScopes.email,
@@ -323,14 +264,11 @@ class AuthScreen extends StatelessWidget {
         final authResult =
             await FirebaseAuth.instance.signInWithCredential(oauthCredential);
         print('Firebase sign in successful: ${authResult.user?.uid}');
-<<<<<<< HEAD
 
         if (authResult.user != null) {
           await createUserDocument(authResult.user!);
         }
 
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
         return authResult;
       }
     } catch (e) {
@@ -345,8 +283,7 @@ class AuthScreen extends StatelessWidget {
   Future<UserCredential?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
-<<<<<<< HEAD
-      final userCredential = await auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
 
       if (userCredential.user != null) {
@@ -354,10 +291,6 @@ class AuthScreen extends StatelessWidget {
       }
 
       return userCredential;
-=======
-      return await auth.signInWithEmailAndPassword(
-          email: email, password: password);
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
     } catch (e) {
       print('Error signing in with email and password: $e');
       if (!kIsWeb) {
@@ -367,13 +300,10 @@ class AuthScreen extends StatelessWidget {
     }
   }
 
-<<<<<<< HEAD
   Future<void> forceSendLogs() async {
     await FirebaseCrashlytics.instance.sendUnsentReports();
   }
 
-=======
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -385,7 +315,6 @@ class AuthScreen extends StatelessWidget {
             ElevatedButton(
               child: Text('Sign in with Google'),
               onPressed: () async {
-<<<<<<< HEAD
                 try {
                   final result = await signInWithGoogle();
                   if (result == null) {
@@ -405,15 +334,6 @@ class AuthScreen extends StatelessWidget {
                   );
                 } finally {
                   await forceSendLogs();
-=======
-                final result = await signInWithGoogle();
-                if (result == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Failed to sign in with Google. Please try again.')),
-                  );
->>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
                 }
               },
             ),
@@ -507,5 +427,3 @@ class _EmailPasswordDialogState extends State<EmailPasswordDialog> {
     );
   }
 }
-
- return null;
