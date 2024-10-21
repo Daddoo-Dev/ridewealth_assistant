@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'server_verification.dart';
 
@@ -26,9 +25,9 @@ class InAppPurchaseManager {
   }
 
   Future<void> _getProducts() async {
-    Set<String> _kIds = <String>{_kSubscriptionId};
+    Set<String> kIds = <String>{_kSubscriptionId};
     ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(_kIds);
+        await _inAppPurchase.queryProductDetails(kIds);
     if (productDetailResponse.error != null) {
       print('Error querying product details: ${productDetailResponse.error}');
     }
@@ -87,9 +86,9 @@ class InAppPurchaseManager {
 
   Future<void> buySubscription() async {
     print('Initiating subscription purchase');
-    Set<String> _kIds = <String>{_kSubscriptionId};
+    Set<String> kIds = <String>{_kSubscriptionId};
     ProductDetailsResponse response =
-        await _inAppPurchase.queryProductDetails(_kIds);
+        await _inAppPurchase.queryProductDetails(kIds);
     if (response.notFoundIDs.isNotEmpty) {
       print('Product not found: ${response.notFoundIDs}');
       return;

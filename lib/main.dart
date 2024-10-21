@@ -166,8 +166,8 @@ class AuthScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 =======
 class AuthScreen extends StatelessWidget {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final GoogleSignIn googleSignIn = GoogleSignIn(
     clientId:
         '171871758415-4qg24772j76t2p2obktl1kt3pjp4ager.apps.googleusercontent.com',
   );
@@ -188,7 +188,7 @@ class AuthScreen extends StatelessWidget {
   }
 
 <<<<<<< HEAD
-  Future<void> _createUserDocument(User user) async {
+  Future<void> createUserDocument(User user) async {
     final userDoc = _firestore.collection('users').doc(user.uid);
     final docSnapshot = await userDoc.get();
 
@@ -206,7 +206,7 @@ class AuthScreen extends StatelessWidget {
     }
   }
 
-  Future<UserCredential?> _signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle() async {
     try {
       FirebaseCrashlytics.instance.log('Starting Google Sign In process');
 
@@ -217,14 +217,14 @@ class AuthScreen extends StatelessWidget {
 
       UserCredential userCredential;
       if (kIsWeb) {
-        userCredential = await _auth.signInWithPopup(googleProvider);
+        userCredential = await auth.signInWithPopup(googleProvider);
       } else {
-        final googleUser = await _auth.signInWithProvider(googleProvider);
+        final googleUser = await auth.signInWithProvider(googleProvider);
         userCredential = googleUser;
       }
 
       if (userCredential.user != null) {
-        await _createUserDocument(userCredential.user!);
+        await createUserDocument(userCredential.user!);
       }
 
       FirebaseCrashlytics.instance
@@ -246,7 +246,7 @@ class AuthScreen extends StatelessWidget {
 =======
   Future<UserCredential?> _signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) return null;
 
       final GoogleSignInAuthentication googleAuth =
@@ -271,7 +271,7 @@ class AuthScreen extends StatelessWidget {
     }
   }
 
-  Future<UserCredential?> _signInWithApple() async {
+  Future<UserCredential?> signInWithApple() async {
     try {
       final rawNonce = generateNonce();
       final nonce = sha256ofString(rawNonce);
@@ -294,7 +294,7 @@ class AuthScreen extends StatelessWidget {
 <<<<<<< HEAD
 
         if (result.user != null) {
-          await _createUserDocument(result.user!);
+          await createUserDocument(result.user!);
         }
 
         return result;
@@ -326,7 +326,7 @@ class AuthScreen extends StatelessWidget {
 <<<<<<< HEAD
 
         if (authResult.user != null) {
-          await _createUserDocument(authResult.user!);
+          await createUserDocument(authResult.user!);
         }
 
 =======
@@ -342,20 +342,20 @@ class AuthScreen extends StatelessWidget {
     }
   }
 
-  Future<UserCredential?> _signInWithEmailAndPassword(
+  Future<UserCredential?> signInWithEmailAndPassword(
       String email, String password) async {
     try {
 <<<<<<< HEAD
-      final userCredential = await _auth.signInWithEmailAndPassword(
+      final userCredential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
 
       if (userCredential.user != null) {
-        await _createUserDocument(userCredential.user!);
+        await createUserDocument(userCredential.user!);
       }
 
       return userCredential;
 =======
-      return await _auth.signInWithEmailAndPassword(
+      return await auth.signInWithEmailAndPassword(
           email: email, password: password);
 >>>>>>> b3fb6e8c9fb932531f365fbeb86f0cb4128fa819
     } catch (e) {
@@ -387,7 +387,7 @@ class AuthScreen extends StatelessWidget {
               onPressed: () async {
 <<<<<<< HEAD
                 try {
-                  final result = await _signInWithGoogle();
+                  final result = await signInWithGoogle();
                   if (result == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -406,7 +406,7 @@ class AuthScreen extends StatelessWidget {
                 } finally {
                   await forceSendLogs();
 =======
-                final result = await _signInWithGoogle();
+                final result = await signInWithGoogle();
                 if (result == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -420,7 +420,7 @@ class AuthScreen extends StatelessWidget {
             ElevatedButton(
               child: Text('Sign in with Apple'),
               onPressed: () async {
-                final result = await _signInWithApple();
+                final result = await signInWithApple();
                 if (result == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -436,7 +436,7 @@ class AuthScreen extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (context) => EmailPasswordDialog(
-                    onSignIn: _signInWithEmailAndPassword,
+                    onSignIn: signInWithEmailAndPassword,
                   ),
                 );
               },
@@ -507,3 +507,5 @@ class _EmailPasswordDialogState extends State<EmailPasswordDialog> {
     );
   }
 }
+
+ return null;
