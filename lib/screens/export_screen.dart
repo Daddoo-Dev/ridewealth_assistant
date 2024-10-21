@@ -276,37 +276,46 @@ class _ExportScreenState extends State<ExportScreen> {
 
   Future<void> _saveCsvFile(String csv, String fileName) async {
     try {
+      Directory? directory;
       if (Platform.isAndroid) {
-        // For Android
         if (await Permission.storage.request().isGranted) {
-          final directory = Directory('/storage/emulated/0/Download');
-          final file = File('${directory.path}/$fileName');
-          await file.writeAsString(csv);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('CSV file saved to Downloads folder')),
-          );
+          if (await Permission.manageExternalStorage.request().isGranted) {
+            directory = Directory('/storage/emulated/0/Download');
+          } else {
+            directory = await getExternalStorageDirectory();
+          }
+          if (directory != null) {
+            String newPath = "";
+            List<String> paths = directory.path.split("/");
+            for (int x = 1; x < paths.length; x++) {
+              String folder = paths[x];
+              if (folder != "Android") {
+                newPath += "/" + folder;
+              } else {
+                break;
+              }
+            }
+            newPath = newPath + "/Download";
+            directory = Directory(newPath);
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Storage permission denied')),
-          );
+          directory = await getApplicationDocumentsDirectory();
         }
       } else if (Platform.isIOS) {
-        // For iOS
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/$fileName');
-        await file.writeAsString(csv);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV file saved. Please check Files app')),
-        );
+        directory = await getApplicationDocumentsDirectory();
       } else {
-        // For other platforms (including web)
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/$fileName');
-        await file.writeAsString(csv);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV file saved to ${file.path}')),
-        );
+        directory = await getApplicationDocumentsDirectory();
       }
+
+      if (directory == null) {
+        throw Exception('Unable to access storage directory');
+      }
+
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsString(csv);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('CSV file saved to ${file.path}')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save CSV file: $e')),
