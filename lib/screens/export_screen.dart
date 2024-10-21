@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../mileage_rates.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -275,13 +276,37 @@ class _ExportScreenState extends State<ExportScreen> {
 
   Future<void> _saveCsvFile(String csv, String fileName) async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final path = directory.path;
-      final file = File('$path/$fileName');
-      await file.writeAsString(csv);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('CSV file saved to ${file.path}')),
-      );
+      if (Platform.isAndroid) {
+        // For Android
+        if (await Permission.storage.request().isGranted) {
+          final directory = Directory('/storage/emulated/0/Download');
+          final file = File('${directory.path}/$fileName');
+          await file.writeAsString(csv);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('CSV file saved to Downloads folder')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Storage permission denied')),
+          );
+        }
+      } else if (Platform.isIOS) {
+        // For iOS
+        final directory = await getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/$fileName');
+        await file.writeAsString(csv);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('CSV file saved. Please check Files app')),
+        );
+      } else {
+        // For other platforms (including web)
+        final directory = await getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/$fileName');
+        await file.writeAsString(csv);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('CSV file saved to ${file.path}')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save CSV file: $e')),
