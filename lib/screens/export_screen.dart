@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../mileage_rates.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -78,7 +78,7 @@ class _ExportScreenState extends State<ExportScreen> {
     );
   }
 
-  Future<void> handleExport() async {
+Future<void> handleExport() async {
     if (!userAuthenticated()) {
       setState(() {
         error = 'User not authenticated';
@@ -209,7 +209,6 @@ class _ExportScreenState extends State<ExportScreen> {
         return ratePeriod.rate;
       }
     }
-    // If no matching period is found, return the most recent rate
     return mileageRates.last.rate;
   }
 
@@ -276,46 +275,38 @@ class _ExportScreenState extends State<ExportScreen> {
 
   Future<void> _saveCsvFile(String csv, String fileName) async {
     try {
-      Directory? directory;
       if (Platform.isAndroid) {
-        if (await Permission.storage.request().isGranted) {
-          if (await Permission.manageExternalStorage.request().isGranted) {
-            directory = Directory('/storage/emulated/0/Download');
-          } else {
-            directory = await getExternalStorageDirectory();
-          }
-          if (directory != null) {
-            String newPath = "";
-            List<String> paths = directory.path.split("/");
-            for (int x = 1; x < paths.length; x++) {
-              String folder = paths[x];
-              if (folder != "Android") {
-                newPath += "/" + folder;
-              } else {
-                break;
-              }
-            }
-            newPath = newPath + "/Download";
-            directory = Directory(newPath);
-          }
+        // Use Storage Access Framework on Android
+        final result = await FilePicker.platform.saveFile(
+          dialogTitle: 'Save CSV file',
+          fileName: fileName,
+          type: FileType.custom,
+          allowedExtensions: ['csv'],
+        );
+
+        if (result != null) {
+          final file = File(result);
+          await file.writeAsString(csv);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('CSV file saved successfully')),
+          );
         } else {
-          directory = await getApplicationDocumentsDirectory();
+          // User canceled the picker
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('File save canceled')),
+          );
         }
       } else if (Platform.isIOS) {
-        directory = await getApplicationDocumentsDirectory();
+        // Keep existing iOS implementation
+        final directory = await getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/$fileName');
+        await file.writeAsString(csv);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('CSV file saved to ${file.path}')),
+        );
       } else {
-        directory = await getApplicationDocumentsDirectory();
+        throw Exception('Unsupported platform');
       }
-
-      if (directory == null) {
-        throw Exception('Unable to access storage directory');
-      }
-
-      final file = File('${directory.path}/$fileName');
-      await file.writeAsString(csv);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('CSV file saved to ${file.path}')),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save CSV file: $e')),
