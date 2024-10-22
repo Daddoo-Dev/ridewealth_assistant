@@ -9,7 +9,8 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../mileage_rates.dart';
-import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -20,10 +21,6 @@ class _ExportScreenState extends State<ExportScreen> {
   int selectedYear = DateTime.now().year;
   String error = '';
   String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-  List<Map<String, dynamic>> exportData = [];
-
-  static const platform =
-      MethodChannel('com.ridewealthassistant.app/file_saver');
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +79,9 @@ class _ExportScreenState extends State<ExportScreen> {
   }
 
   Future<void> handleExport() async {
+    print('Starting export process...');
     if (!userAuthenticated()) {
+      print('User not authenticated');
       setState(() {
         error = 'User not authenticated';
       });
@@ -90,14 +89,27 @@ class _ExportScreenState extends State<ExportScreen> {
     }
 
     try {
+      print('Fetching expenses...');
       final expenses = await fetchExpenses();
+      print('Fetched ${expenses.length} expenses');
+
+      print('Fetching income...');
       final income = await fetchIncome();
+      print('Fetched ${income.length} income records');
+
+      print('Fetching mileage...');
       final mileage = await fetchMileage();
-      setState(() {
-        exportData = generateExportData(expenses, income, mileage);
-      });
-      downloadCsv(exportData);
+      print('Fetched ${mileage.length} mileage records');
+
+      print('Generating export data...');
+      final exportData = generateExportData(expenses, income, mileage);
+      print('Export data generated: ${exportData.toString()}');
+
+      print('Opening CSV...');
+      await openCsv(exportData, 'export_data.csv');
+      print('CSV process completed');
     } catch (err) {
+      print('Error during export: $err');
       setState(() {
         error = 'Failed to export data. Please try again.';
       });
@@ -105,7 +117,9 @@ class _ExportScreenState extends State<ExportScreen> {
   }
 
   Future<void> handleMileageExport() async {
+    print('Starting mileage export process...');
     if (!userAuthenticated()) {
+      print('User not authenticated');
       setState(() {
         error = 'User not authenticated';
       });
@@ -113,10 +127,15 @@ class _ExportScreenState extends State<ExportScreen> {
     }
 
     try {
+      print('Fetching mileage...');
       final mileage = await fetchMileage();
+      print('Fetched ${mileage.length} mileage records');
       final formattedMileage = formatMileageForExport(mileage);
-      downloadMileageCsv(formattedMileage);
+      print('Opening CSV...');
+      await openCsv(formattedMileage, 'mileage_data.csv');
+      print('CSV process completed');
     } catch (err) {
+      print('Error during mileage export: $err');
       setState(() {
         error = 'Failed to export mileage data. Please try again.';
       });
@@ -228,91 +247,81 @@ class _ExportScreenState extends State<ExportScreen> {
         .toList();
   }
 
-  void downloadCsv(List<Map<String, dynamic>> data) {
+  Future<void> openCsv(List<Map<String, dynamic>> data, String filename) async {
+    print('Starting openCsv...');
     List<List<dynamic>> rows = [];
-    rows.add(data.first.keys.toList()); // Adding header
+    rows.add(data.first.keys.toList()); // Header
     for (var element in data) {
       rows.add(element.values.toList());
     }
+    print('Rows prepared: ${rows.toString()}');
 
     String csv = const ListToCsvConverter().convert(rows);
+    print('CSV converted: $csv');
 
     if (kIsWeb) {
-      // Web platform
+      print('Processing for web platform...');
       final bytes = utf8.encode(csv);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
       final anchor = html.AnchorElement(href: url)
-        ..setAttribute("download", "export_data.csv")
+        ..setAttribute("download", filename)
         ..click();
       html.Url.revokeObjectUrl(url);
+      print('Web download initiated');
     } else {
-      // Mobile platform
-      _saveCsvFile(csv, "export_data.csv");
-    }
-  }
-
-  void downloadMileageCsv(List<Map<String, String>> data) {
-    List<List<dynamic>> rows = [];
-    rows.add(data.first.keys.toList()); // Adding header
-    for (var element in data) {
-      rows.add(element.values.toList());
-    }
-
-    String csv = const ListToCsvConverter().convert(rows);
-
-    if (kIsWeb) {
-      // Web platform
-      final bytes = utf8.encode(csv);
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute("download", "mileage_data.csv")
-        ..click();
-      html.Url.revokeObjectUrl(url);
-    } else {
-      // Mobile platform
-      _saveCsvFile(csv, "mileage_data.csv");
-    }
-  }
-
-  Future<void> _saveCsvFile(String csv, String fileName) async {
-    try {
-      if (Platform.isAndroid) {
-        final String? uri =
-            await platform.invokeMethod('createFile', {'fileName': fileName});
-        if (uri != null) {
-          final bool success = await platform
-              .invokeMethod('writeFile', {'uri': uri, 'content': csv});
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('CSV file saved successfully')),
-            );
+      print('Processing for mobile platform...');
+      try {
+        Directory? directory;
+        if (Platform.isAndroid) {
+          if (await Permission.storage.request().isGranted) {
+            if (await Permission.manageExternalStorage.request().isGranted) {
+              directory = Directory('/storage/emulated/0/Download');
+            } else {
+              directory = await getExternalStorageDirectory();
+            }
+            if (directory != null) {
+              String newPath = "";
+              List<String> paths = directory.path.split("/");
+              for (int x = 1; x < paths.length; x++) {
+                String folder = paths[x];
+                if (folder != "Android") {
+                  newPath += "/" + folder;
+                } else {
+                  break;
+                }
+              }
+              newPath = newPath + "/Download";
+              directory = Directory(newPath);
+            }
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to save CSV file')),
-            );
+            directory = await getApplicationDocumentsDirectory();
           }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('File save cancelled')),
-          );
+        } else if (Platform.isIOS) {
+          directory = await getApplicationDocumentsDirectory();
         }
-      } else if (Platform.isIOS) {
-        // Keep existing iOS implementation
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/$fileName');
+
+        if (directory == null) {
+          throw Exception('Unable to access storage directory');
+        }
+
+        final file = File('${directory.path}/$filename');
         await file.writeAsString(csv);
+        print('File saved to: ${file.path}');
+
+        // Add share functionality right after successful save
+        await Share.shareXFiles([XFile(file.path)], subject: filename);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('CSV file saved to ${file.path}')),
+          SnackBar(content: Text('CSV file saved and ready to view')),
         );
-      } else {
-        throw Exception('Unsupported platform');
+      } catch (e) {
+        print('Error handling CSV: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error with CSV file: $e')),
+        );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save CSV file: $e')),
-      );
     }
+    print('openCsv completed');
   }
 }
