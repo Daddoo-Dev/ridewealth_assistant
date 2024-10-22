@@ -286,12 +286,12 @@ class _ExportScreenState extends State<ExportScreen> {
               for (int x = 1; x < paths.length; x++) {
                 String folder = paths[x];
                 if (folder != "Android") {
-                  newPath += "/" + folder;
+                  newPath += "/$folder";
                 } else {
                   break;
                 }
               }
-              newPath = newPath + "/Download";
+              newPath = "$newPath/Download";
               directory = Directory(newPath);
             }
           } else {
