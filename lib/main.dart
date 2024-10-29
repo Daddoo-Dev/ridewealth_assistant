@@ -251,10 +251,16 @@ class AuthScreen extends StatelessWidget {
             AppleIDAuthorizationScopes.fullName,
           ],
           nonce: nonce,
+          webAuthenticationOptions: WebAuthenticationOptions(
+            clientId: 'service.com.ridewealthassistant.app',
+            redirectUri: Uri.parse(
+                'https://uberdriver-2941d.firebaseapp.com/__/auth/handler'),
+          ),
         );
 
+        print('Got Apple credential');
         print(
-            'Received Apple credential: ${appleCredential.identityToken != null}');
+            'Identity token exists: ${appleCredential.identityToken != null}');
 
         final oauthCredential = OAuthProvider("apple.com").credential(
           idToken: appleCredential.identityToken,
@@ -263,7 +269,6 @@ class AuthScreen extends StatelessWidget {
 
         final authResult =
             await FirebaseAuth.instance.signInWithCredential(oauthCredential);
-        print('Firebase sign in successful: ${authResult.user?.uid}');
 
         if (authResult.user != null) {
           await createUserDocument(authResult.user!);
