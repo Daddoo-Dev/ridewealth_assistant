@@ -1,1 +1,40 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"uberdriver-2941d","appId":"1:171871758415:android:9f4591fb6dcef3b929623a","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"uberdriver-2941d","configurations":{"android":"1:171871758415:android:9f4591fb6dcef3b929623a","ios":"1:171871758415:ios:c3579660852bee0529623a","macos":"1:171871758415:ios:c3579660852bee0529623a","web":"1:171871758415:web:1b6c5539d4ec384229623a"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "uberdriver-2941d",
+          "appId": "1:171871758415:android:9f4591fb6dcef3b929623a",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "uberdriver-2941d",
+          "configurations": {
+            "android": "1:171871758415:android:9f4591fb6dcef3b929623a",
+            "ios": "1:171871758415:ios:c3579660852bee0529623a",
+            "macos": "1:171871758415:ios:c3579660852bee0529623a",
+            "web": "1:171871758415:web:1b6c5539d4ec384229623a"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}
