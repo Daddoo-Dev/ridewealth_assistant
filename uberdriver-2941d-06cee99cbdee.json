@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "uberdriver-2941d",
+  "private_key_id": "06cee99cbdeed75d64a798cad3b1797f4f0b6c19",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC6HfwebOkMCe7y\nwWXg/R4z3MBpf0DzTH4XDLyDdOnSmPIEYGrHLKBWCmJv6BmQ0CsXPXB6CPKFIK7t\njaWpDZX7fUUH+faWNAm9U/Hx0rHAiO04wfPggp+YJ99I2yhK6I6fLgEUh5+TllJE\nXT/7YiCfrHIOv2SlPIripIYFzdtzSDcEj710ixUUqtm6NNAYVVSu90CANr6PoWHn\n3kItraGDOUnvRH7jHNAaquVKKO2ZCMmnixR4jMCU3+OuklA6uxtvH93bJKq4YCwW\nKHCZtzM67ei6oCRXz2vumZdiMd8z3Lm9J++RVEO0hbkQ5BoOi9vImI0pJQbUf+ZL\n9Nn6++/vAgMBAAECggEAIWyIHgiuE5DnHiZ4Pt8GIQc4cNm/FtJ6ZHZPloYVBdKc\nyAdutaVAiCMmSXWTvct8qZhJjkj0EM9tStEg2orLkBYPox6TV6cxxpQAQ870SCDv\nBT3jp8Kdmawzb7iX9FfuYQzYedDfahhZXtimSGV3eWV1OEvL7dbBFHG6delhy0Jy\n1Pl0h5b4R3TVuFemi4WSaVW2jeN3gWzDYSaiabEiak9Z1BiS//N4ZM0uXJyS23zP\n048n7MCoApM74t26kJ4v6NNmvw04Jq8pjMbRRp1Zcf8CJqDbckfFjE6MBmS+vrcM\n9ZgfRpoWbh9GcmBZrbtl1NvPXKVkHIaHYb/OW8hMzQKBgQDi/PxYq0c9/HuezfFP\nDc3TkVbPOJlN5fEEErNMwoftMYe0sIkJRDluDMP3VPRGev3YglwboACzkopea2Nr\nZ7XQdrNbhSyWpqY6PrK9yk3fpI6+2xzSW88VMzSnj1+LrL+EueEEw9R+6undYktT\nBR4iyqk2FXWNQ/ITfGCiocOgxQKBgQDR57Q/qrn2bbfmS9dLa7uLn6FseHTrhsiM\nE9UglmM0EJNsCeafXEw6FKd3j15GNvdC4ME6H39dO6++v55yMDJylv5nPuyqXydQ\nsFUU3aUTWUjgVyTgDIcGi3Pk9cqiXZtDEl7bbkD7vLpJVkqlbfXwD2t1TRIAfSCP\nBHOvXo5xIwKBgQDAyhzOdtMwm7SngcVV3qSV8Fip8imLVySoz/VH2eW3GR1o45PQ\nsgiRJvh+psI+5pGaBcaTlAdkfa9WWKF9hP2QjHDz552iavK+f6gyuJQBwnOXOOU2\n6dFt8Srkskp1iIi2A2ZSNL3T+lQduzG81pjs9fJYREuuayo9UKOHHhvY/QKBgGi7\nr9hEm102CZhDJz1el8lm8OhqggwyyEX8b08/Omh0DNrPZd8F8pLYU2b4hhWKv30D\nH+acaLRgX6RRgAGBwuoiJPXnE7c+myNLmGg832z0E8S8No4EMis10bHgYib5hcrF\nk8bxEEOLO3f0MnKwlxIc34U720ubI2+4zPAnwfL5AoGAMtRp0hhdTappxsyEjK+l\nKu5wlsPgAw9CAEfTTyf6zjNfAH2RbIP8pzFOyX4/cT9B/vCe/0FMjMBtRJgsstHt\n+FsiGzd61sDyfaIMbuXXKx6M57kObrNiSHbJVjByxcHyeymRyTqQybCxRrCK4T8u\noP+KrhsLt25IquP9YOGkHRA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "codemagic-playstore@uberdriver-2941d.iam.gserviceaccount.com",
+  "client_id": "113679827394326969768",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/codemagic-playstore%40uberdriver-2941d.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
