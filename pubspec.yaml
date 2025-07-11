@@ -36,7 +36,7 @@ dependencies:
   dynamic_color: ^1.6.8
   purchases_flutter: ^8.10.5
   flutter_plugin_android_lifecycle: ^2.0.28
-  google_sign_in_android: ^7.0.1
+  google_sign_in_android: ^6.1.21
 
 dev_dependencies:
   flutter_test:
