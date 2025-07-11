@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   english_words:
   provider:
-  google_sign_in: ^6.3.0
+  google_sign_in: ^6.1.6
   sign_in_with_apple: ^7.0.1
   shared_preferences: ^2.3.4
   csv: ^5.1.1
