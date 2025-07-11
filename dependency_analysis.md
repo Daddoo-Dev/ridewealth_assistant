@@ -5,6 +5,59 @@
 - **GitHub Actions**: Flutter 3.22.1, Dart 3.4.1
 - **Problem**: Dependencies resolved for newer Dart SDK are incompatible with older Dart SDK
 
+## FINAL WORKING DEPENDENCIES FOR DART 3.4.1
+
+### Direct Dependencies (Confirmed Working)
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  english_words:
+  provider:
+  google_sign_in: ^6.1.6
+  sign_in_with_apple: ^7.0.1
+  shared_preferences: ^2.3.3
+  csv: ^5.1.1
+  http: ^1.1.2
+  intl: ^0.19.0
+  universal_html: ^2.2.4
+  path_provider: ^2.1.2
+  collection: ^1.18.0
+  fluttertoast: ^8.2.8
+  url_launcher: ^6.3.1
+  in_app_purchase: ^3.1.13
+  share_plus: ^10.0.0
+  permission_handler: ^11.3.1
+  in_app_purchase_storekit: ^0.3.0
+  supabase_flutter: ^2.8.0
+  flutter_dotenv: ^5.1.0
+  connectivity_plus: ^5.0.2
+  dynamic_color: ^1.6.8
+  purchases_flutter: ^8.0.0
+  flutter_plugin_android_lifecycle: ^2.0.15
+  google_sign_in_android: ^6.1.21
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+```
+
+### Key Changes Made for Dart 3.4.1 Compatibility
+1. **flutter_lints**: ^6.0.0 → ^4.0.0 (requires Dart 3.8+)
+2. **google_sign_in**: ^6.3.0 → ^6.1.6 (requires Dart 3.6+)
+3. **shared_preferences**: ^2.3.4 → ^2.3.3 (requires Dart 3.5+)
+4. **permission_handler**: ^12.0.1 → ^11.3.1 (requires Dart 3.5+)
+5. **in_app_purchase**: ^3.2.2 → ^3.1.13 (requires Dart 3.5+)
+6. **share_plus**: ^11.0.0 → ^10.0.0 (requires Dart 3.5+)
+7. **supabase_flutter**: unpinned → ^2.8.0 (for stability)
+8. **flutter_dotenv**: unpinned → ^5.1.0 (for stability)
+9. **purchases_flutter**: ^8.10.5 → ^8.0.0 (for stability)
+
+### Android Configuration Fix
+- **Removed hardcoded Java path**: `org.gradle.java.home=C:\\Program Files\\Java\\jdk-21` from `android/gradle.properties`
+- Now uses system default Java installation (works in CI/CD)
+
 ## Dependencies That Need Downgrading
 
 ### 1. Direct Dependencies (from pubspec.yaml)
