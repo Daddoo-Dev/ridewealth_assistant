@@ -14,5 +14,10 @@
         <string>export</string>
         <key>manageAppVersionAndBuildNumber</key>
         <false/>
+        <key>provisioningProfiles</key>
+        <dict>
+            <key>com.ridewealthassistant.app</key>
+            <string>Rideweath Assistant iOS Distribution</string>
+        </dict>
     </dict>
 </plist> 
