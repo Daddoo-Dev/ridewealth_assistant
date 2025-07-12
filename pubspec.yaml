@@ -42,14 +42,11 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-dependency_overrides:
-
-
 flutter:
   uses-material-design: true
   assets:
     - assets/icons/
-
+    - .env
 # St. Carlo, pray for us
 # St. Joseph, pray for us
 # St. Michael, the Archangel, pray for us
