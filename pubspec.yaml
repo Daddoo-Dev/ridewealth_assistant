@@ -49,7 +49,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
-    - .env
 
 # St. Carlo, pray for us
 # St. Joseph, pray for us
