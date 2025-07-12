@@ -20,14 +20,6 @@ jobs:
           
       - name: Install CocoaPods
         run: sudo gem install cocoapods
-        
-      - name: Create .env file
-        run: |
-          cat > .env << 'EOF'
-          SUPABASE_URL=https://ygreztutwejfiqyzdpnd.supabase.co
-          SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlncmV6dHV0d2VqZmlxeXpkcG5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4MTkwODMsImV4cCI6MjA2NzM5NTA4M30.67RGB--Gp0rooa3775wz3eeOt1vD63RpgbCUVk9zHnw
-          RESEND_KEY=re_PWCkxuZF_HHiEmmdMyxdXjt8eYgiCa6iw
-          EOF
 
       - name: Get dependencies
         run: flutter pub get
@@ -60,7 +52,7 @@ jobs:
         run: mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles && cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
       - name: Build iOS IPA (signed)
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ secrets.SUPABASE_KEY }} --dart-define=RESEND_KEY=${{ secrets.RESEND_KEY }}
 
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
