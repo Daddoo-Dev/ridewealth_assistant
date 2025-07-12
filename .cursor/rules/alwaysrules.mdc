@@ -17,7 +17,7 @@ alwaysApply: true
 # Use the most simple and straightforward solution
 # If making changes or correcting errors, don't ask me if I want you to continue, the answer is always yes
 # It is your job to do the coding. Don't tell me to review, check, or anything like that. That is your job.
-# Keep secrets secret. I have a .env file for you for a reason
+# Keep secrets secret. Use env.json for local development (in .gitignore)
 # Always use proper project formatting
 # Keep all styling in a global css and use it for all aspects
 # Keep all styling simple. Use the same styling for all buttons, unless something like width difference is necessary. Then at least make them look the same with different width.

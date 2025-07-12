@@ -30,7 +30,6 @@ dependencies:
   permission_handler: ^11.3.1
   in_app_purchase_storekit: ^0.3.0
   supabase_flutter: ^2.8.0
-  flutter_dotenv: ^5.1.0
   connectivity_plus: ^5.0.2
   dynamic_color: ^1.6.8
   purchases_flutter: ^8.0.0
@@ -51,7 +50,7 @@ dev_dependencies:
 5. **in_app_purchase**: ^3.2.2 → ^3.1.13 (requires Dart 3.5+)
 6. **share_plus**: ^11.0.0 → ^10.0.0 (requires Dart 3.5+)
 7. **supabase_flutter**: unpinned → ^2.8.0 (for stability)
-8. **flutter_dotenv**: unpinned → ^5.1.0 (for stability)
+8. **flutter_dotenv**: Removed (using --dart-define instead)
 9. **purchases_flutter**: ^8.10.5 → ^8.0.0 (for stability)
 
 ### Android Configuration Fix
@@ -84,7 +83,7 @@ dev_dependencies:
 | Package | Current Version | Compatible Version | Issue |
 |---------|----------------|-------------------|-------|
 | `flutter_lints` | 6.0.0 | 5.0.0 | Requires Dart 3.8+ |
-| `flutter_dotenv` | 5.2.1 | 5.1.0 | May have compatibility issues |
+| `flutter_dotenv` | 5.2.1 | Removed | Using --dart-define instead |
 | `csv` | 5.1.1 | 5.1.1 | ✅ Already correct |
 | `fluttertoast` | 8.2.12 | 8.2.8 | ✅ Already correct in pubspec.yaml |
 | `url_launcher` | 6.3.1 | 6.3.1 | ✅ Already correct |
@@ -128,11 +127,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0  # Downgrade from 6.0.0
 ```
 
-#### Fix flutter_dotenv (if needed)
-```yaml
-dependencies:
-  flutter_dotenv: ^5.1.0  # Downgrade if issues persist
-```
+#### Environment Variables (Updated)
+Using `--dart-define` instead of flutter_dotenv for cross-platform compatibility
 
 ## Verification Commands
 

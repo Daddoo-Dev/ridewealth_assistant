@@ -197,14 +197,14 @@ class ExportScreenState extends State<ExportScreen> {
     final startOfYear = DateTime(selectedYear, 1, 1);
     final endOfYear = DateTime(selectedYear, 12, 31, 23, 59, 59);
 
-    print('Querying mileage for user: ${user!.id}, start: ${startOfYear.toIso8601String()}, end: ${endOfYear.toIso8601String()}');
+    print('Querying mileage for user: $user!.id, start: $startOfYear, end: $endOfYear');
     final response = await supabase
         .from('mileage')
         .select()
         .eq('user_id', user!.id)
         .gte('start_date', startOfYear.toIso8601String())
         .lte('start_date', endOfYear.toIso8601String());
-    print('Raw mileage response: ${response.runtimeType} ${response}');
+    print('Raw mileage response: $response.runtimeType $response');
 
     try {
       return (response as List).map((doc) {
@@ -214,8 +214,8 @@ class ExportScreenState extends State<ExportScreen> {
         return data;
       }).cast<Map<String, dynamic>>().toList();
     } catch (e) {
-      print('Error parsing mileage records: ${e}');
-      print('Problematic response: ${response}');
+      print('Error parsing mileage records: $e');
+      print('Problematic response: $response');
       rethrow;
     }
   }
@@ -254,7 +254,7 @@ class ExportScreenState extends State<ExportScreen> {
       'Start Mileage': entry['start_mileage'].toString(),
       'End Mileage': entry['end_mileage'].toString(),
       'Total Daily Miles':
-      (entry['end_mileage'] - entry['start_mileage']).toString()
+          (entry['end_mileage'] - entry['start_mileage']).toString()
     })
         .toList();
   }
@@ -273,7 +273,7 @@ class ExportScreenState extends State<ExportScreen> {
       data.first.keys.toList(),
       ...data.map((item) => item.values.map((v) => v ?? 0).toList())
     ];
-    print('Rows prepared: ${rows.toString()}');
+    print('Rows prepared: $rows');
 
     String csv = const ListToCsvConverter().convert(rows);
     print('CSV converted: $csv');

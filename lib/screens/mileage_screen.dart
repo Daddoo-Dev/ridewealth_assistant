@@ -50,8 +50,7 @@ class MileageScreenState extends State<MileageScreen> {
         error = "Failed to load mileages. Please try again.";
       });
       if (!mounted) return;
-      final localContext = context;
-      ScaffoldMessenger.of(localContext).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to load mileages. Please try again.")),
       );
     }

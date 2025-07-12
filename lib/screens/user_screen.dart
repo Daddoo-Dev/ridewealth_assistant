@@ -16,29 +16,31 @@ class UserScreen extends StatefulWidget {
 class UserScreenState extends State<UserScreen> {
   Future<void> handleSignOut(BuildContext context) async {
     print("Sign out button pressed");
-    final localContext = context;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final authState = Provider.of<AuthState>(context, listen: false);
     try {
       await supabase.Supabase.instance.client.auth.signOut();
       if (!mounted) return;
       print("Supabase sign out successful");
 
       // Update AuthState
-      await Provider.of<AuthState>(localContext, listen: false).signOut();
+      await authState.signOut();
       if (!mounted) return;
       print("AuthState updated");
 
-      ScaffoldMessenger.of(localContext).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('You have been signed out.')),
       );
       print("Snackbar shown");
 
       // Navigate back to the main screen
-      Navigator.of(localContext).pushReplacementNamed('/');
+      navigator.pushReplacementNamed('/');
       print("Navigation attempted");
     } catch (error) {
       print('Error signing out: $error');
       if (!mounted) return;
-      ScaffoldMessenger.of(localContext).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Error signing out. Please try again.')),
       );
     }

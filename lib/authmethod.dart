@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
 
 final supabase = Supabase.instance.client;
 
@@ -49,13 +48,13 @@ Future<AuthResponse?> signUpWithEmailAndPassword(String email, String password) 
 
 Future<bool> signInWithGoogle() async {
   try {
-    String? redirectUrl;
+    String redirectUrl;
     if (kIsWeb) {
-      redirectUrl = Uri.base.origin + '/';
+      redirectUrl = '${Uri.base.origin}/';
     } else {
       redirectUrl = 'com.ridewealthassistant.app://login-callback';
     }
-    print('DEBUG: Using redirectUrl: ' + (redirectUrl ?? 'null'));
+    print('DEBUG: Using redirectUrl: $redirectUrl');
     
     await supabase.auth.signInWithOAuth(
       OAuthProvider.google,

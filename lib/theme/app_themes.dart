@@ -66,11 +66,11 @@ class AppThemes {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.white,
-      indicatorColor: primaryColor.withOpacity(0.1),
-      labelTextStyle: MaterialStateProperty.all(
+      indicatorColor: primaryColor.withValues(alpha: 0.1),
+      labelTextStyle: WidgetStateProperty.all(
         bodyMedium.copyWith(fontWeight: FontWeight.bold),
       ),
-      iconTheme: MaterialStateProperty.all(
+      iconTheme: WidgetStateProperty.all(
         IconThemeData(color: primaryColor),
       ),
     ),
@@ -100,11 +100,11 @@ class AppThemes {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.grey[900],
-      indicatorColor: accentColor.withOpacity(0.1),
-      labelTextStyle: MaterialStateProperty.all(
+      indicatorColor: accentColor.withValues(alpha: 0.1),
+      labelTextStyle: WidgetStateProperty.all(
         bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white70),
       ),
-      iconTheme: MaterialStateProperty.all(
+      iconTheme: WidgetStateProperty.all(
         IconThemeData(color: accentColor),
       ),
     ),

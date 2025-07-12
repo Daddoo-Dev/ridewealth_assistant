@@ -8,13 +8,11 @@ import 'services/feature_flag_service.dart';
 import 'authmethod.dart';
 
 import 'screens/main_screen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'environment.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await dotenv.load();
     await FeatureFlags.initialize();
     
     // Initialize Supabase
@@ -106,24 +104,15 @@ class AuthScreenState extends State<AuthScreen> {
             ElevatedButton(
               child: Text('Sign in with Google'),
               onPressed: () async {
-                final localContext = context;
-                try {
-                  final result = await signInWithGoogle();
-                  if (!mounted) return;
-                  if (!result) {
-                    ScaffoldMessenger.of(localContext).showSnackBar(
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final result = await signInWithGoogle();
+                if (!mounted) return;
+                if (!result) {
+                  scaffoldMessenger.showSnackBar(
                       SnackBar(
                           content: Text(
                               'Failed to sign in with Google. Please try again.')),
                     );
-                  }
-                } catch (e) {
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(localContext).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'An error occurred during Google Sign In. Please try again.')),
-                  );
                 }
               },
             ),
@@ -131,11 +120,11 @@ class AuthScreenState extends State<AuthScreen> {
             ElevatedButton(
               child: Text('Sign in with Apple'),
               onPressed: () async {
-                final localContext = context;
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 final result = await signInWithApple();
                 if (!mounted) return;
                 if (!result) {
-                  ScaffoldMessenger.of(localContext).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                         content: Text(
                             'Failed to sign in with Apple. Please try again.')),
@@ -201,20 +190,21 @@ class EmailPasswordDialogState extends State<EmailPasswordDialog> {
         ElevatedButton(
           child: Text('Sign In'),
           onPressed: () async {
-            final localContext = context;
+            final scaffoldMessenger = ScaffoldMessenger.of(context);
+            final navigator = Navigator.of(context);
             final result = await widget.onSignIn(
               _emailController.text,
               _passwordController.text,
             );
             if (!mounted) return;
             if (result == null || result.user == null) {
-              ScaffoldMessenger.of(localContext).showSnackBar(
+              scaffoldMessenger.showSnackBar(
                 SnackBar(
                     content: Text(
                         'Failed to sign in. Please check your credentials and try again.')),
               );
             } else {
-              Navigator.of(localContext).pop();
+              navigator.pop();
             }
           },
         ),

@@ -14,15 +14,13 @@
 - Open `ios/Runner.xcworkspace` in Xcode if you need to update signing, bundle ID, or capabilities
 - Add any required iOS-specific assets or permissions (e.g., Info.plist updates)
 
-### 2. .env or Config Files
-- If using `flutter_dotenv`, ensure `.env` is listed in `assets` in `pubspec.yaml`:
-  ```yaml
-  flutter:
-    assets:
-      - assets/icons/
-      - .env
+### 2. Environment Configuration
+- Use `--dart-define` for environment variables:
+  ```bash
+  flutter run --dart-define=SUPABASE_URL=your-url --dart-define=SUPABASE_KEY=your-key
   ```
-- Make sure `.env` exists in the project root before building
+- Or use JSON config file with `--dart-define-from-file=env.json`
+- Make sure `env.json` exists in the project root before building
 
 ### 3. GitHub Actions Workflow Example
 - Add a workflow file (e.g., `.github/workflows/ios.yml`):
@@ -99,14 +97,10 @@
 ---
 
 ## Tips
-- Keep `.env` and config files in sync across environments
+- Keep environment variables in sync across environments using `--dart-define`
 - For iOS, use fastlane and GitHub Secrets for code signing automation if needed
 - Test builds locally before pushing to CI
 - Update `dependency_analysis.md` if you change dependency versions
 
 
-SUPABASE_URL=https://ygreztutwejfiqyzdpnd.supabase.co
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlncmV6dHV0d2VqZmlxeXpkcG5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4MTkwODMsImV4cCI6MjA2NzM5NTA4M30.67RGB--Gp0rooa3775wz3eeOt1vD63RpgbCUVk9zHnw
-
-RESEND_KEY=re_PWCkxuZF_HHiEmmdMyxdXjt8eYgiCa6iw
 

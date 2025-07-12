@@ -454,9 +454,9 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
             Text(label, style: Theme.of(context).textTheme.titleMedium),
             Text(formula, style: Theme.of(context).textTheme.bodySmall),
             SizedBox(height: 8),
-            Text('Taxable Base: ' + base.toStringAsFixed(2)),
+            Text('Taxable Base: ${base.toStringAsFixed(2)}'),
             if (miles > 0)
-              Text('Mileage Deduction: $miles miles ( ${mileageDeduction.toStringAsFixed(2)})'),
+              Text('Mileage Deduction: $miles miles (${mileageDeduction.toStringAsFixed(2)})'),
             SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

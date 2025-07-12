@@ -1,22 +1,19 @@
 #!/bin/bash
 
-source .env
+# Build web with environment variables
+# Use --dart-define-from-file=env.json or pass variables directly
 
 flutter build web \
-  --dart-define=FIREBASE_API_KEY=$FIREBASE_API_KEY \
-  --dart-define=FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN \
-  --dart-define=FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID \
-  --dart-define=FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET \
-  --dart-define=FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID \
-  --dart-define=FIREBASE_APP_ID=$FIREBASE_APP_ID \
-  --dart-define=FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID
+  --dart-define-from-file=env.json
 
-sed -i '' \
-  -e "s/FIREBASE_API_KEY/${FIREBASE_API_KEY}/g" \
-  -e "s/FIREBASE_AUTH_DOMAIN/${FIREBASE_AUTH_DOMAIN}/g" \
-  -e "s/FIREBASE_PROJECT_ID/${FIREBASE_PROJECT_ID}/g" \
-  -e "s/FIREBASE_STORAGE_BUCKET/${FIREBASE_STORAGE_BUCKET}/g" \
-  -e "s/FIREBASE_MESSAGING_SENDER_ID/${FIREBASE_MESSAGING_SENDER_ID}/g" \
-  -e "s/FIREBASE_APP_ID/${FIREBASE_APP_ID}/g" \
-  -e "s/FIREBASE_MEASUREMENT_ID/${FIREBASE_MEASUREMENT_ID}/g" \
-  build/web/index.html
+# Note: Firebase variables are now handled via env.json
+# If you need Firebase config, add it to env.json:
+# {
+#   "FIREBASE_API_KEY": "your-key",
+#   "FIREBASE_AUTH_DOMAIN": "your-domain",
+#   "FIREBASE_PROJECT_ID": "your-project-id",
+#   "FIREBASE_STORAGE_BUCKET": "your-bucket",
+#   "FIREBASE_MESSAGING_SENDER_ID": "your-sender-id",
+#   "FIREBASE_APP_ID": "your-app-id",
+#   "FIREBASE_MEASUREMENT_ID": "your-measurement-id"
+# }
