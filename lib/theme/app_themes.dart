@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 class AppThemes {
@@ -41,15 +43,15 @@ class AppThemes {
   );
 
   static InputDecoration get inputDecoration => InputDecoration(
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: primaryColor, width: 2.0),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-  );
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: primaryColor, width: 2.0),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      );
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
