@@ -6,6 +6,7 @@ import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
 import 'services/feature_flag_service.dart';
 import 'authmethod.dart';
+import 'revenuecat_manager.dart';
 
 import 'screens/main_screen.dart';
 import 'environment.dart';
@@ -21,6 +22,9 @@ void main() async {
       url: Environment.supabaseUrl,
       anonKey: Environment.supabaseKey,
     );
+
+    // Initialize RevenueCat
+    await RevenueCatManager.initialize();
 
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -233,6 +237,8 @@ class AuthState extends ChangeNotifier {
       _user = data.session?.user;
       if (_user != null) {
         await createSupabaseUserDocument(_user!);
+        // Sync user with RevenueCat
+        await RevenueCatManager.setRevenueCatUser(_user!.id);
       }
       notifyListeners();
     });

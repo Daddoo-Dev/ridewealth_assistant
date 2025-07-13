@@ -18,6 +18,15 @@ This document describes the current structure of the Supabase database for the R
 | zip                     | text         | User's zip code            |
 | subscription_start_date | timestamptz  | Subscription start date    |
 | created_at              | timestamptz  | Row creation timestamp     |
+| subscription_status     | text         | Subscription status (active/inactive/cancelled) |
+| subscription_type       | text         | Type of subscription (monthly/yearly) |
+| subscription_expiry     | timestamptz  | Subscription expiration date |
+| subscription_will_renew | boolean      | Whether subscription will auto-renew |
+| subscription_platform   | text         | Platform (ios/android) |
+| subscription_id         | text         | RevenueCat subscription ID |
+| is_subscribed           | boolean      | Whether user has active subscription |
+| subscription_end_date   | timestamptz  | Alternative subscription end date |
+| last_updated            | timestamptz  | Last update timestamp |
 
 ---
 
@@ -39,6 +48,16 @@ This document describes the current structure of the Supabase database for the R
 | Column      | Type         | Description                |
 |-------------|--------------|----------------------------|
 | (see Supabase for details) |
+
+---
+
+## Table: `feature_flags`
+| Column      | Type         | Description                |
+|-------------|--------------|----------------------------|
+| subscriptions_enabled   | boolean      | Whether subscriptions are enabled |
+| subscription_check_enabled | boolean   | Whether subscription checks are enabled |
+| subscription_required_screen_enabled | boolean | Whether subscription required screen is shown |
+| store_redirect_enabled  | boolean      | Whether store redirect is enabled |
 
 ---
 
