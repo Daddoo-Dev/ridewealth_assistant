@@ -46,3 +46,5 @@ This document describes the current structure of the Supabase database for the R
 > - This schema is based on the current Supabase dashboard and codebase.
 > - Update this file whenever you change the database structure.
 > - For full column details on `expenses`, `income`, and `mileage`, refer to the Supabase dashboard or update this file with the exact columns and types. 
+>
+> blah
