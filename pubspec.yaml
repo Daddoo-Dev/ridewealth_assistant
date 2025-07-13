@@ -36,6 +36,7 @@ dependencies:
   purchases_flutter: ^8.10.5
   flutter_plugin_android_lifecycle: ^2.0.15
   google_sign_in_android: ^6.1.21
+  sentry_flutter: ^7.16.0
 
 dev_dependencies:
   flutter_test:

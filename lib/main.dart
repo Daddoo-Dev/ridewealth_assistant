@@ -9,23 +9,29 @@ import 'authmethod.dart';
 
 import 'screens/main_screen.dart';
 import 'environment.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await FeatureFlags.initialize();
-    
+
     // Initialize Supabase
     await Supabase.initialize(
       url: Environment.supabaseUrl,
       anonKey: Environment.supabaseKey,
     );
-    
+
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    runApp(MyApp());
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = 'YOUR_SENTRY_DSN'; // TODO: Replace with your actual DSN
+      },
+      appRunner: () => runApp(MyApp()),
+    );
   } catch (e, stack) {
     // Print error to console and show a visible error widget
     debugPrint('Startup error: $e');
@@ -109,10 +115,10 @@ class AuthScreenState extends State<AuthScreen> {
                 if (!mounted) return;
                 if (!result) {
                   scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'Failed to sign in with Google. Please try again.')),
-                    );
+                    SnackBar(
+                        content: Text(
+                            'Failed to sign in with Google. Please try again.')),
+                  );
                 }
               },
             ),
