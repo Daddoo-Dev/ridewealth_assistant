@@ -1,13 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:csv/csv.dart';
 import 'package:universal_html/html.dart' as html;
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'package:share_plus/share_plus.dart';
-import 'dart:io';
-import 'dart:convert';
 
 class DeleteAccountButton extends StatelessWidget {
   final VoidCallback? onAccountDeleted;

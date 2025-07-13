@@ -9,17 +9,19 @@ import 'authmethod.dart';
 
 import 'screens/main_screen.dart';
 import 'environment.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await FeatureFlags.initialize();
-    
-    // Initialize Supabase
+    // Initialize Supabase FIRST
     await Supabase.initialize(
       url: Environment.supabaseUrl,
       anonKey: Environment.supabaseKey,
     );
+
+    // THEN initialize feature flags
+    await FeatureFlags.initialize();
     
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -101,40 +103,52 @@ class AuthScreenState extends State<AuthScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              child: Text('Sign in with Google'),
+            OAuthButton(
+              text: 'Continue with Google',
+              backgroundColor: Colors.white,
+              textColor: Colors.black87,
+              borderColor: const Color(0xFFE0E0E0),
+              icon: SvgPicture.asset(
+                'assets/google_g.svg',
+                height: 24,
+                width: 24,
+              ),
               onPressed: () async {
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 final result = await signInWithGoogle();
                 if (!mounted) return;
                 if (!result) {
                   scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'Failed to sign in with Google. Please try again.')),
-                    );
+                    SnackBar(content: Text('Failed to sign in with Google. Please try again.')),
+                  );
                 }
               },
             ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              child: Text('Sign in with Apple'),
+            const SizedBox(height: 16),
+            OAuthButton(
+              text: 'Continue with Apple',
+              backgroundColor: Colors.black,
+              textColor: Colors.white,
+              borderColor: Colors.black,
+              icon: Icon(Icons.apple, color: Colors.white, size: 24),
               onPressed: () async {
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 final result = await signInWithApple();
                 if (!mounted) return;
                 if (!result) {
                   scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Failed to sign in with Apple. Please try again.')),
+                    SnackBar(content: Text('Failed to sign in with Apple. Please try again.')),
                   );
                 }
               },
             ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              child: Text('Sign in with Email/Password'),
+            const SizedBox(height: 16),
+            OAuthButton(
+              text: 'Sign in with Email/Password',
+              backgroundColor: Colors.white,
+              textColor: Colors.black87,
+              borderColor: const Color(0xFFE0E0E0),
+              icon: Icon(Icons.mail_outline, color: Colors.black87, size: 24),
               onPressed: () {
                 showDialog(
                   context: context,
@@ -145,6 +159,67 @@ class AuthScreenState extends State<AuthScreen> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class OAuthButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+  final Color backgroundColor;
+  final Color textColor;
+  final Widget? icon;
+  final Color borderColor;
+
+  const OAuthButton({
+    required this.text,
+    required this.onPressed,
+    required this.backgroundColor,
+    required this.textColor,
+    this.icon,
+    this.borderColor = const Color(0xFF1565C0), // Stronger blue
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 320,
+      height: 48,
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF42A5F5).withOpacity(0.35), // Brighter blue shadow
+              blurRadius: 16,
+              offset: Offset(0, 4),
+            ),
+          ],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            backgroundColor: backgroundColor,
+            foregroundColor: textColor,
+            side: BorderSide(color: borderColor, width: 2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+          onPressed: onPressed,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                icon!,
+                const SizedBox(width: 12),
+              ],
+              Text(text, style: TextStyle(color: textColor)),
+            ],
+          ),
         ),
       ),
     );
@@ -225,6 +300,7 @@ class AuthState extends ChangeNotifier {
   void _initializeAuth() {
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       _user = data.session?.user;
+      print('DEBUG: AuthState user: ${_user}');
       if (_user != null) {
         await createSupabaseUserDocument(_user!);
       }

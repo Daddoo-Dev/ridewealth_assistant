@@ -19,8 +19,12 @@ class FeatureFlags {
           .from('feature_flags')
           .select()
           .single();
-      
-      _flags.addAll(response);
+      if (response != null) {
+        _flags.addAll(response);
+      } else {
+        print('No feature flags found, using defaults.');
+        _flags.addAll(defaults);
+      }
     } catch (e) {
       print('Error loading feature flags from Supabase: $e');
       // Fall back to defaults

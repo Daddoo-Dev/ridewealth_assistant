@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart';
 import 'dart:convert';
-import 'package:csv/csv.dart';
-import 'package:universal_html/html.dart' as html;
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:csv/csv.dart';
+import 'package:universal_html/html.dart' as html;
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -326,9 +326,10 @@ class ExportScreenState extends State<ExportScreen> {
   }
 
   Future<Directory> _getDirectory() async {
-    if (Platform.isAndroid) {
-      if (await Permission.storage.request().isGranted &&
-          await Permission.manageExternalStorage.request().isGranted) {
+    if (kIsWeb) throw UnsupportedError('Not supported on web');
+    if (!kIsWeb && Platform.isAndroid) {
+      if (!kIsWeb && await Permission.storage.request().isGranted &&
+          !kIsWeb && await Permission.manageExternalStorage.request().isGranted) {
         return Directory('/storage/emulated/0/Download');
       }
       return await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
@@ -350,20 +351,22 @@ class ExportScreenState extends State<ExportScreen> {
       html.Url.revokeObjectUrl(url);
     } else {
       // Mobile export
-      final status = await Permission.storage.request();
-      if (status.isGranted) {
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/ridewealth_export_$year.csv');
-        final csvData = _convertToCsvFormat(data);
-        final csv = const ListToCsvConverter().convert(csvData);
-        await file.writeAsString(csv);
-        
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [XFile(file.path)],
-            subject: 'RideWealth Export Data for $year',
-          ),
-        );
+      if (!kIsWeb) {
+        final status = await Permission.storage.request();
+        if (status.isGranted) {
+          final directory = await getApplicationDocumentsDirectory();
+          final file = File('${directory.path}/ridewealth_export_$year.csv');
+          final csvData = _convertToCsvFormat(data);
+          final csv = const ListToCsvConverter().convert(csvData);
+          await file.writeAsString(csv);
+          
+          await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(file.path)],
+              subject: 'RideWealth Export Data for $year',
+            ),
+          );
+        }
       }
     }
   }

@@ -6,6 +6,7 @@ import 'apple_iap_service.dart';
 import 'google_iap_service.dart';
 import 'main.dart' show AuthState;
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class SubscriptionRequiredScreen extends StatefulWidget {
   final dynamic iapService;
@@ -27,13 +28,18 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
   @override
   void initState() {
     super.initState();
-    _iapService = Platform.isIOS ?
-    widget.iapService as AppleIAPService :
-    widget.iapService as GoogleIAPService;
-    _loadProducts();
+    if (!kIsWeb) {
+      _iapService = Platform.isIOS ?
+        widget.iapService as AppleIAPService :
+        widget.iapService as GoogleIAPService;
+      _loadProducts();
+    } else {
+      _error = 'In-app purchases are not supported on web.';
+    }
   }
 
   Future<void> _loadProducts() async {
+    if (kIsWeb) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -54,6 +60,7 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
   }
 
   Future<void> _restorePurchases() async {
+    if (kIsWeb) return;
     setState(() => _loading = true);
     try {
       await _iapService.restorePurchases();
@@ -65,6 +72,7 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
   }
 
   Future<void> _subscribe(ProductDetails product) async {
+    if (kIsWeb) return;
     setState(() {
       _loading = true;
       _error = null;

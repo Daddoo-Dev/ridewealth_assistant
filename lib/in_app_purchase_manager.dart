@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'server_verification.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class InAppPurchaseManager {
   static const String _kGoogleSubscriptionId = 'com.ridwealthassistant.subscribe.annual';
@@ -10,6 +11,7 @@ class InAppPurchaseManager {
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
   Future<void> initStoreInfo() async {
+    if (kIsWeb) return;
     final bool isAvailable = await _inAppPurchase.isAvailable();
     if (!isAvailable) {
       print('In-app purchases not available');
@@ -27,6 +29,7 @@ class InAppPurchaseManager {
   }
 
   Future<void> _getProducts() async {
+    if (kIsWeb) return;
     Set<String> kIds = Platform.isIOS
         ? <String>{_kAppleSubscriptionId}
         : <String>{_kGoogleSubscriptionId};
@@ -41,6 +44,7 @@ class InAppPurchaseManager {
   }
 
   Future<void> _getPastPurchases() async {
+    if (kIsWeb) return;
     print('Restoring purchases');
     try {
       await _inAppPurchase.restorePurchases();
@@ -51,12 +55,14 @@ class InAppPurchaseManager {
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+    if (kIsWeb) return;
     for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
       _handlePurchaseUpdate(purchaseDetails);
     }
   }
 
   Future<void> _handlePurchaseUpdate(PurchaseDetails purchaseDetails) async {
+    if (kIsWeb) return;
     if (purchaseDetails.status == PurchaseStatus.pending) {
       print('Purchase pending');
     } else {
@@ -77,6 +83,7 @@ class InAppPurchaseManager {
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchase) async {
+    if (kIsWeb) return;
     // Verify purchase on the server
     bool isValid = await _verifyPurchase(purchase);
     if (isValid) {
@@ -88,12 +95,14 @@ class InAppPurchaseManager {
   }
 
   Future<bool> _verifyPurchase(PurchaseDetails purchase) async {
+    if (kIsWeb) return false;
     print('Verifying purchase for product: ${purchase.productID}');
     return await ServerVerification.verifyPurchase(
         purchase.productID, purchase.verificationData.serverVerificationData);
   }
 
   Future<void> buySubscription() async {
+    if (kIsWeb) return;
     print('Initiating subscription purchase');
     Set<String> kIds = Platform.isIOS
         ? <String>{_kAppleSubscriptionId}

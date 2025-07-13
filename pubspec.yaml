@@ -36,6 +36,7 @@ dependencies:
   purchases_flutter: ^8.10.5
   flutter_plugin_android_lifecycle: ^2.0.15
   google_sign_in_android: ^6.1.21
+  flutter_svg: ^2.2.0
 
 dev_dependencies:
   flutter_test:
@@ -45,6 +46,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/google_g.svg
     - assets/icons/
 # St. Carlo, pray for us
 # St. Joseph, pray for us

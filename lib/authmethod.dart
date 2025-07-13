@@ -50,18 +50,20 @@ Future<bool> signInWithGoogle() async {
   try {
     String redirectUrl;
     if (kIsWeb) {
-      redirectUrl = '${Uri.base.origin}/';
+      // Remove trailing slash from origin if present
+      redirectUrl = Uri.base.origin.replaceAll(RegExp(r'/+ 0?$'), '');
+      print('DEBUG: Web redirectUrl: $redirectUrl');
     } else {
       redirectUrl = 'com.ridewealthassistant.app://login-callback';
+      print('DEBUG: Mobile redirectUrl: $redirectUrl');
     }
-    print('DEBUG: Using redirectUrl: $redirectUrl');
-    
+    print('DEBUG: Calling supabase.auth.signInWithOAuth');
     await supabase.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: redirectUrl,
     );
-    
     print('DEBUG: OAuth signInWithOAuth completed successfully');
+    print('DEBUG: Session after signInWithOAuth: ${supabase.auth.currentSession}');
     return true;
   } catch (e) {
     print('Error signing in with Google: $e');
