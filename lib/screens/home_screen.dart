@@ -2,11 +2,65 @@ import 'package:flutter/material.dart';
 import '../theme/app_themes.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? _userDisplayName;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final user = Provider.of<AuthState>(context, listen: false).user;
+    if (user != null) {
+      try {
+        final response = await supabase.Supabase.instance.client
+            .from('users')
+            .select('name')
+            .eq('id', user.id)
+            .single();
+
+        setState(() {
+          _userDisplayName = response['name'];
+          _loading = false;
+        });
+      } catch (e) {
+        print("Error loading user profile: $e");
+        setState(() {
+          _userDisplayName = null;
+          _loading = false;
+        });
+      }
+    } else {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthState>(context).user;
+    
+    // Determine what to display
+    String displayText = 'User';
+    if (_loading) {
+      displayText = 'Loading...';
+    } else if (_userDisplayName != null && _userDisplayName!.isNotEmpty) {
+      displayText = _userDisplayName!;
+    } else if (user?.email != null) {
+      displayText = user!.email!;
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -20,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Welcome, ${user?.email ?? 'User'}!',
+                      'Welcome, $displayText!',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     SizedBox(height: 16),

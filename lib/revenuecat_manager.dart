@@ -9,7 +9,7 @@ class RevenueCatManager {
   static final supabase = Supabase.instance.client;
 
   /// Initialize RevenueCat
-  static Future<void> initialize() async {
+  static Future<void> initialize({String? initialUserId}) async {
     try {
       if (kIsWeb) {
         print('RevenueCat not available on web platform');
@@ -23,9 +23,17 @@ class RevenueCatManager {
       // Initialize RevenueCat with appropriate API key
       final apiKey = defaultTargetPlatform == TargetPlatform.iOS ? _iosApiKey : _androidApiKey;
       await Purchases.setLogLevel(LogLevel.debug);
+      
+      // Configure RevenueCat
       await Purchases.configure(PurchasesConfiguration(apiKey));
       
       print('RevenueCat initialization completed');
+      
+      // If we have an initial user ID, set it immediately after configuration
+      if (initialUserId != null) {
+        print('Setting initial RevenueCat user: $initialUserId');
+        await setRevenueCatUser(initialUserId);
+      }
     } catch (e) {
       print('Error initializing RevenueCat: $e');
     }
@@ -34,10 +42,66 @@ class RevenueCatManager {
   /// Set RevenueCat user ID
   static Future<void> setRevenueCatUser(String userId) async {
     try {
-      await Purchases.logIn(userId);
-      print('RevenueCat user set: $userId');
+      print('=== RevenueCat User Setup ===');
+      
+      // First check if there's already a logged-in user
+      final customerInfo = await Purchases.getCustomerInfo();
+      final currentUserId = customerInfo.originalAppUserId;
+      
+      print('Current RevenueCat user: $currentUserId');
+      print('Attempting to set RevenueCat user: $userId');
+      
+      // Check if this is an anonymous user
+      if (currentUserId.startsWith('\$RCAnonymousID:')) {
+        print('Found anonymous user, attempting to create new user');
+        
+        // Try to force create a new user by using a different approach
+        // First, completely log out
+        await Purchases.logOut();
+        print('Logged out of RevenueCat');
+        
+        // Wait for logout to complete
+        await Future.delayed(Duration(milliseconds: 500));
+        
+        // Now try to log in with the new user ID
+        await Purchases.logIn(userId);
+        
+        // Verify the login worked
+        final newCustomerInfo = await Purchases.getCustomerInfo();
+        final newUserId = newCustomerInfo.originalAppUserId;
+        print('New RevenueCat user after login: $newUserId');
+        
+        if (newUserId == userId) {
+          print('✅ Successfully set RevenueCat user to: $userId');
+        } else {
+          print('❌ Failed to set RevenueCat user. Expected: $userId, Got: $newUserId');
+          print('Attempting force reset...');
+          await forceResetUser(userId);
+        }
+      } else if (currentUserId != userId) {
+        print('Different user logged in, switching to: $userId');
+        await Purchases.logIn(userId);
+        print('RevenueCat user switched to: $userId');
+      } else {
+        print('RevenueCat user already set to: $userId');
+      }
+      
+      print('=== End RevenueCat User Setup ===');
     } catch (e) {
       print('Error setting RevenueCat user: $e');
+    }
+  }
+
+  /// Get current RevenueCat user ID
+  static Future<String?> getCurrentRevenueCatUserId() async {
+    try {
+      if (kIsWeb) return null;
+      
+      final customerInfo = await Purchases.getCustomerInfo();
+      return customerInfo.originalAppUserId;
+    } catch (e) {
+      print('Error getting RevenueCat user ID: $e');
+      return null;
     }
   }
 
@@ -156,13 +220,13 @@ class RevenueCatManager {
       if (entitlement == null) return null;
       if (entitlement.periodType != PeriodType.trial) return null;
       
-final dynamic expiration = entitlement.expirationDate;
-DateTime? expirationDate;
-if (expiration is DateTime) {
-  expirationDate = expiration;
-} else if (expiration is String) {
-  expirationDate = DateTime.tryParse(expiration);
-}
+      final dynamic expiration = entitlement.expirationDate;
+      DateTime? expirationDate;
+      if (expiration is DateTime) {
+        expirationDate = expiration;
+      } else if (expiration is String) {
+        expirationDate = DateTime.tryParse(expiration);
+      }
       
       if (expirationDate == null) return null;
       final now = DateTime.now();
@@ -171,6 +235,48 @@ if (expiration is DateTime) {
     } catch (e) {
       print('Error getting trial days: $e');
       return null;
+    }
+  }
+
+  /// Get trial status and details
+  static Future<Map<String, dynamic>> getTrialStatus() async {
+    try {
+      if (kIsWeb) return {'isInTrial': false, 'daysRemaining': 0};
+      
+      final customerInfo = await Purchases.getCustomerInfo();
+      final entitlement = customerInfo.entitlements.active.values.firstOrNull;
+      
+      if (entitlement == null) {
+        return {'isInTrial': false, 'daysRemaining': 0};
+      }
+      
+      if (entitlement.periodType != PeriodType.trial) {
+        return {'isInTrial': false, 'daysRemaining': 0};
+      }
+      
+      final dynamic expiration = entitlement.expirationDate;
+      DateTime? expirationDate;
+      if (expiration is DateTime) {
+        expirationDate = expiration;
+      } else if (expiration is String) {
+        expirationDate = DateTime.tryParse(expiration);
+      }
+      
+      if (expirationDate == null) {
+        return {'isInTrial': false, 'daysRemaining': 0};
+      }
+      
+      final now = DateTime.now();
+      final remaining = expirationDate.difference(now).inDays;
+      
+      return {
+        'isInTrial': remaining > 0,
+        'daysRemaining': remaining > 0 ? remaining : 0,
+        'expirationDate': expirationDate.toIso8601String(),
+      };
+    } catch (e) {
+      print('Error getting trial status: $e');
+      return {'isInTrial': false, 'daysRemaining': 0};
     }
   }
 
@@ -198,5 +304,80 @@ if (expiration is DateTime) {
   static Future<bool> cancelSubscription() async {
     // RevenueCat doesn't provide direct cancellation - users must cancel through app store
     return true;
+  }
+
+  /// Force reset RevenueCat user ID (use with caution)
+  static Future<void> forceResetUser(String userId) async {
+    try {
+      print('=== Force Reset RevenueCat User ===');
+      
+      // First log out to clear any existing user
+      await Purchases.logOut();
+      print('Logged out of RevenueCat');
+      
+      // Wait a moment for the logout to complete
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      // Now log in with the new user ID
+      await Purchases.logIn(userId);
+      print('Logged in to RevenueCat with user: $userId');
+      
+      // Verify the login worked
+      final customerInfo = await Purchases.getCustomerInfo();
+      final newUserId = customerInfo.originalAppUserId;
+      print('New RevenueCat user after force reset: $newUserId');
+      
+      if (newUserId == userId) {
+        print('✅ Successfully force reset RevenueCat user to: $userId');
+      } else {
+        print('❌ Failed to force reset RevenueCat user. Expected: $userId, Got: $newUserId');
+      }
+      
+      print('=== End Force Reset RevenueCat User ===');
+    } catch (e) {
+      print('Error force resetting RevenueCat user: $e');
+    }
+  }
+
+  /// Completely reset RevenueCat (nuclear option)
+  static Future<void> nuclearReset() async {
+    try {
+      print('=== NUCLEAR RESET REVENUECAT ===');
+      
+      // Log out completely
+      await Purchases.logOut();
+      print('Logged out of RevenueCat');
+      
+      // Wait for logout to complete
+      await Future.delayed(Duration(seconds: 1));
+      
+      // Clear any cached data by getting fresh customer info
+      await Purchases.getCustomerInfo();
+      
+      print('=== END NUCLEAR RESET ===');
+    } catch (e) {
+      print('Error during nuclear reset: $e');
+    }
+  }
+
+  /// Completely clear all RevenueCat data and start fresh
+  static Future<void> clearAllData() async {
+    try {
+      print('=== CLEARING ALL REVENUECAT DATA ===');
+      
+      // Log out completely
+      await Purchases.logOut();
+      print('Logged out of RevenueCat');
+      
+      // Wait for logout to complete
+      await Future.delayed(Duration(seconds: 1));
+      
+      // Force a fresh customer info request to clear cache
+      await Purchases.getCustomerInfo();
+      
+      print('=== END CLEARING ALL REVENUECAT DATA ===');
+    } catch (e) {
+      print('Error clearing RevenueCat data: $e');
+    }
   }
 } 

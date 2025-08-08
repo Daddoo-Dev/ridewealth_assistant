@@ -5,12 +5,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
 import 'services/feature_flag_service.dart';
+import 'services/error_tracking_service.dart';
 import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 
 import 'screens/main_screen.dart';
 import 'environment.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'subscription_required.dart';
+import 'apple_iap_service.dart';
+import 'google_iap_service.dart';
+import 'dart:io' show Platform;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,21 +28,51 @@ void main() async {
       anonKey: Environment.supabaseKey,
     );
 
-    // Initialize RevenueCat
-    await RevenueCatManager.initialize();
+    // Check for existing session and get user ID for RevenueCat
+    final currentSession = Supabase.instance.client.auth.currentSession;
+    final initialUserId = currentSession?.user?.id;
+
+    // Initialize RevenueCat with initial user ID if available
+    await RevenueCatManager.initialize(initialUserId: initialUserId);
+    
+    // If we have a user, do a nuclear reset to clear any anonymous users
+    if (initialUserId != null) {
+      print('Performing nuclear reset to clear anonymous users');
+      await RevenueCatManager.clearAllData();
+      await RevenueCatManager.setRevenueCatUser(initialUserId);
+    }
 
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    
+    print('Sentry DSN: ${Environment.sentryDsn}'); // Log DSN for troubleshooting
     await SentryFlutter.init(
       (options) {
-        options.dsn = 'YOUR_SENTRY_DSN'; // TODO: Replace with your actual DSN
+        options.dsn = Environment.sentryDsn;
+        options.tracesSampleRate = 1.0;
+        options.enableAutoSessionTracking = true;
+        options.attachStacktrace = true;
+        options.sendDefaultPii = true;
+        options.debug = false; // Disable debug mode to reduce log noise
+        options.beforeSend = (SentryEvent event, {Hint? hint}) {
+          // Filter out sensitive data but keep error context
+          if (event.exceptions != null && event.exceptions!.isNotEmpty) {
+            // Add device info for better debugging
+            final tags = Map<String, String>.from(event.tags ?? {});
+            tags['platform'] = event.platform ?? 'unknown';
+            tags['environment'] = 'production';
+            event = event.copyWith(tags: tags);
+          }
+          return event;
+        };
       },
       appRunner: () => runApp(MyApp()),
     );
   } catch (e, stack) {
-    // Print error to console and show a visible error widget
+    // Capture startup errors in Sentry
+    Sentry.captureException(e, stackTrace: stack);
     debugPrint('Startup error: $e');
     debugPrint('Stack: $stack');
     runApp(MaterialApp(
@@ -88,12 +123,50 @@ class AuthWrapperState extends State<AuthWrapper> {
     return Consumer<AuthState>(
       builder: (context, authState, child) {
         if (authState.user != null) {
-          return MainScreen();
+          // Check subscription status before allowing access
+          return FutureBuilder<bool>(
+            future: _checkSubscriptionStatus(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              
+              final hasSubscription = snapshot.data ?? false;
+              
+              if (hasSubscription) {
+                return MainScreen();
+              } else {
+                // Force subscription screen
+                return SubscriptionRequiredScreen(
+                  iapService: Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
+                );
+              }
+            },
+          );
         } else {
           return AuthScreen();
         }
       },
     );
+  }
+
+  Future<bool> _checkSubscriptionStatus() async {
+    try {
+      // Check if user has active subscription or trial
+      final isSubscribed = await RevenueCatManager.isSubscribed();
+      final trialStatus = await RevenueCatManager.getTrialStatus();
+      
+      // Allow access if subscribed OR in trial
+      return isSubscribed || (trialStatus['isInTrial'] == true);
+    } catch (e) {
+      print('Error checking subscription status: $e');
+      // Default to requiring subscription on error
+      return false;
+    }
   }
 }
 
@@ -108,117 +181,123 @@ class AuthScreenState extends State<AuthScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Sign In')),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              child: Text('Sign in with Google'),
-              onPressed: () async {
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                final result = await signInWithGoogle();
-                if (!mounted) return;
-                if (!result) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Failed to sign in with Google. Please try again.')),
-                  );
-                }
-              },
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              child: Text('Sign in with Apple'),
-              onPressed: () async {
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                final result = await signInWithApple();
-                if (!mounted) return;
-                if (!result) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Failed to sign in with Apple. Please try again.')),
-                  );
-                }
-              },
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              child: Text('Sign in with Email/Password'),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => EmailPasswordDialog(
-                    onSignIn: signInWithEmailAndPassword,
-                  ),
-                );
-              },
-            ),
-          ],
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildOAuthButton(
+                'Sign in with Google',
+                'https://www.google.com/favicon.ico',
+                () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  try {
+                    final result = await signInWithGoogle();
+                    if (!result) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Failed to sign in with Google. Please try again.')),
+                      );
+                    }
+                  } catch (e, stack) {
+                    await ErrorTrackingService.captureUIError(
+                      e,
+                      stack,
+                      screen: 'auth_screen',
+                      action: 'google_sign_in',
+                    );
+                    print('Google sign in UI error: $e');
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text('An error occurred. Please try again.')),
+                    );
+                  }
+                },
+              ),
+              SizedBox(height: 16),
+              _buildOAuthButton(
+                'Sign in with Apple',
+                'https://www.apple.com/favicon.ico',
+                () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  try {
+                    final result = await signInWithApple();
+                    if (!result) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Failed to sign in with Apple. Please try again.')),
+                      );
+                    }
+                  } catch (e, stack) {
+                    await ErrorTrackingService.captureUIError(
+                      e,
+                      stack,
+                      screen: 'auth_screen',
+                      action: 'apple_sign_in',
+                    );
+                    print('Apple sign in UI error: $e');
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text('An error occurred. Please try again.')),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
-class EmailPasswordDialog extends StatefulWidget {
-  final Future<AuthResponse?> Function(String email, String password) onSignIn;
-
-  EmailPasswordDialog({required this.onSignIn});
-
-  @override
-  State<EmailPasswordDialog> createState() => EmailPasswordDialogState();
-}
-
-class EmailPasswordDialogState extends State<EmailPasswordDialog> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Sign In'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _emailController,
-            decoration: InputDecoration(labelText: 'Email'),
-          ),
-          TextField(
-            controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Password'),
-            obscureText: true,
+  Widget _buildOAuthButton(String text, String logoUrl, VoidCallback onPressed) {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.3),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          child: Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onPressed,
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.network(
+                  logoUrl,
+                  width: 24,
+                  height: 24,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.account_circle, size: 24, color: Colors.grey);
+                  },
+                ),
+                SizedBox(width: 12),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        ElevatedButton(
-          child: Text('Sign In'),
-          onPressed: () async {
-            final scaffoldMessenger = ScaffoldMessenger.of(context);
-            final navigator = Navigator.of(context);
-            final result = await widget.onSignIn(
-              _emailController.text,
-              _passwordController.text,
-            );
-            if (!mounted) return;
-            if (result == null || result.user == null) {
-              scaffoldMessenger.showSnackBar(
-                SnackBar(
-                    content: Text(
-                        'Failed to sign in. Please check your credentials and try again.')),
-              );
-            } else {
-              navigator.pop();
-            }
-          },
-        ),
-      ],
+      ),
     );
   }
 }
@@ -233,14 +312,46 @@ class AuthState extends ChangeNotifier {
   }
 
   void _initializeAuth() {
+    print('Initializing auth state listener...');
+    
+    // Check if there's already an existing session and set RevenueCat user immediately
+    final currentSession = Supabase.instance.client.auth.currentSession;
+    if (currentSession?.user != null) {
+      print('Found existing session, setting RevenueCat user immediately');
+      RevenueCatManager.setRevenueCatUser(currentSession!.user!.id);
+    }
+    
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
-      _user = data.session?.user;
-      if (_user != null) {
-        await createSupabaseUserDocument(_user!);
-        // Sync user with RevenueCat
-        await RevenueCatManager.setRevenueCatUser(_user!.id);
+      print('=== Auth State Change ===');
+      print('Event: ${data.event}');
+      print('Session: ${data.session != null ? 'exists' : 'null'}');
+      print('User: ${data.session?.user?.id ?? 'null'}');
+      
+      try {
+        _user = data.session?.user;
+        if (_user != null) {
+          print('User authenticated: ${_user!.id}');
+          await createSupabaseUserDocument(_user!);
+          // Sync user with RevenueCat
+          await RevenueCatManager.setRevenueCatUser(_user!.id);
+          
+          // Debug: Get current RevenueCat user ID
+          final revenueCatUserId = await RevenueCatManager.getCurrentRevenueCatUserId();
+          print('Supabase user ID: ${_user!.id}');
+          print('RevenueCat user ID: $revenueCatUserId');
+        } else {
+          print('No user in session');
+        }
+        notifyListeners();
+      } catch (e, stack) {
+        await ErrorTrackingService.captureGeneralError(
+          e,
+          stack,
+          context: 'auth_state_change',
+        );
+        print('Auth state change error: $e');
       }
-      notifyListeners();
+      print('=== End Auth State Change ===');
     });
   }
 
@@ -250,8 +361,18 @@ class AuthState extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await Supabase.instance.client.auth.signOut();
-    _user = null;
-    notifyListeners();
+    try {
+      await Supabase.instance.client.auth.signOut();
+      _user = null;
+      notifyListeners();
+    } catch (e, stack) {
+      await ErrorTrackingService.captureAuthError(
+        e,
+        stack,
+        authMethod: 'signout',
+      );
+      print('Sign out error in AuthState: $e');
+      rethrow;
+    }
   }
 }

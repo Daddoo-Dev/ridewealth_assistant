@@ -37,10 +37,7 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
         return;
       }
 
-      // Check subscription status from Supabase
-      final supabaseSubscription = await _checkSupabaseSubscription(supabaseUser.id);
-      
-      // Also check RevenueCat
+      // Check subscription status from RevenueCat only
       final revenueCatSubscription = await RevenueCatManager.isSubscribed();
       
       // Get subscription details
@@ -50,7 +47,7 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
       final availableOfferings = await RevenueCatManager.getOfferings();
 
       setState(() {
-        isSubscribed = supabaseSubscription || revenueCatSubscription;
+        isSubscribed = revenueCatSubscription;
         subscriptionDetails = customerInfo;
         offerings = availableOfferings;
         isLoading = false;
@@ -65,25 +62,8 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
   }
 
   Future<bool> _checkSupabaseSubscription(String userId) async {
-    try {
-      final response = await supabase
-          .from('users')
-          .select('subscription_end_date, is_subscribed')
-          .eq('id', userId)
-          .single();
-      
-      // response is never null after .single(), so remove the null check
-      final isSubscribed = response['is_subscribed'] as bool? ?? false;
-      final subscriptionEndDate = response['subscription_end_date'] as String?;
-      
-      if (!isSubscribed || subscriptionEndDate == null) return false;
-      
-      final endDate = DateTime.parse(subscriptionEndDate);
-      return endDate.isAfter(DateTime.now());
-    } catch (e) {
-      print('Error checking Supabase subscription: $e');
-      return false;
-    }
+    // Removed Supabase subscription check - now using RevenueCat as source of truth
+    return false;
   }
 
   Future<void> _purchaseSubscription(Map<String, dynamic> package) async {
@@ -125,20 +105,8 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
   }
 
   Future<void> _updateSubscriptionStatus() async {
-    final supabaseUser = supabase.auth.currentUser;
-    
-    if (supabaseUser == null) return;
-    
-    final now = DateTime.now();
-    final endDate = now.add(const Duration(days: 30));
-    
-    await supabase.from('users').update({
-      'subscription_start_date': now.toIso8601String(),
-      'subscription_end_date': endDate.toIso8601String(),
-      'is_subscribed': true,
-      'subscription_type': 'premium',
-      'last_updated': now.toIso8601String(),
-    }).eq('id', supabaseUser.id);
+    // Removed Supabase subscription update - RevenueCat handles all subscription logic
+    print('Subscription status updated in RevenueCat');
   }
 
   Future<void> _restorePurchases() async {

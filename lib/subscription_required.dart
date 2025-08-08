@@ -34,6 +34,8 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
   }
 
   Future<void> _loadProducts() async {
+    if (!mounted) return;
+    
     setState(() {
       _loading = true;
       _error = null;
@@ -41,11 +43,15 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
 
     try {
       final products = await _iapService.loadProducts();
+      if (!mounted) return;
+      
       setState(() {
         _products = products;
         _loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
+      
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -54,17 +60,23 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
   }
 
   Future<void> _restorePurchases() async {
+    if (!mounted) return;
+    
     setState(() => _loading = true);
     try {
       await _iapService.restorePurchases();
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
 
   Future<void> _subscribe(ProductDetails product) async {
+    if (!mounted) return;
+    
     setState(() {
       _loading = true;
       _error = null;
@@ -73,8 +85,10 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
     try {
       await _iapService.purchaseProduct(product);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }

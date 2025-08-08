@@ -3,7 +3,7 @@ description: A financial assistant for rideshare and gig drivers.
 
 publish_to: "none"
 
-version: 1.0.17+17
+version: 1.0.18+18
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -37,6 +37,7 @@ dependencies:
   flutter_plugin_android_lifecycle: ^2.0.15
   google_sign_in_android: ^6.1.21
   sentry_flutter: ^7.16.0
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +48,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+    - assets/googlelogo.svg
+    - assets/applelogo.svg
 # St. Carlo, pray for us
 # St. Joseph, pray for us
 # St. Michael, the Archangel, pray for us

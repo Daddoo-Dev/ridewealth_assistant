@@ -6,6 +6,7 @@ import 'income_screen.dart';
 import 'expenses_screen.dart';
 import 'tax_estimates.dart';
 import 'user_screen.dart';
+import '../revenuecat_manager.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  Map<String, dynamic>? _trialStatus;
 
   final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
@@ -23,6 +25,19 @@ class MainScreenState extends State<MainScreen> {
     EstimatedTaxScreen(),
     UserScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrialStatus();
+  }
+
+  Future<void> _loadTrialStatus() async {
+    final trialStatus = await RevenueCatManager.getTrialStatus();
+    setState(() {
+      _trialStatus = trialStatus;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -37,7 +52,35 @@ class MainScreenState extends State<MainScreen> {
         title: Text('RideWealth Assistant'),
         backgroundColor: AppThemes.primaryColor,
       ),
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: Column(
+        children: [
+          // Trial status banner
+          if (_trialStatus != null && _trialStatus!['isInTrial'] == true)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(12),
+              color: Colors.orange.shade100,
+              child: Row(
+                children: [
+                  Icon(Icons.access_time, color: Colors.orange.shade800),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Free Trial: ${_trialStatus!['daysRemaining']} days remaining',
+                      style: TextStyle(
+                        color: Colors.orange.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: _onItemTapped,
         selectedIndex: _selectedIndex,
