@@ -55,16 +55,10 @@ class RevenueCatManager {
       if (currentUserId.startsWith('\$RCAnonymousID:')) {
         print('Found anonymous user, attempting to create new user');
         
-        // Try to force create a new user by using a different approach
-        // First, completely log out
-        await Purchases.logOut();
-        print('Logged out of RevenueCat');
-        
-        // Wait for logout to complete
-        await Future.delayed(Duration(milliseconds: 500));
-        
-        // Now try to log in with the new user ID
+        // For anonymous users, we can't log out, so we need to use logIn directly
+        // This will create a new user with the specified ID
         await Purchases.logIn(userId);
+        print('Logged in to RevenueCat with user: $userId');
         
         // Verify the login worked
         final newCustomerInfo = await Purchases.getCustomerInfo();
@@ -75,8 +69,6 @@ class RevenueCatManager {
           print('✅ Successfully set RevenueCat user to: $userId');
         } else {
           print('❌ Failed to set RevenueCat user. Expected: $userId, Got: $newUserId');
-          print('Attempting force reset...');
-          await forceResetUser(userId);
         }
       } else if (currentUserId != userId) {
         print('Different user logged in, switching to: $userId');

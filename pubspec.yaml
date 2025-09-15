@@ -35,8 +35,6 @@ dependencies:
   dynamic_color: ^1.6.8
   purchases_flutter: ^8.10.5
   flutter_plugin_android_lifecycle: ^2.0.15
-  google_sign_in_android: ^6.1.21
-  sentry_flutter: ^7.16.0
   flutter_svg: ^2.0.9
 
 dev_dependencies:

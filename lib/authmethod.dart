@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_sign_in/google_sign_in.dart';
 import 'services/error_tracking_service.dart';
 import 'revenuecat_manager.dart';
 
@@ -91,30 +92,53 @@ Future<AuthResponse?> signUpWithEmailAndPassword(String email, String password) 
 
 Future<bool> signInWithGoogle() async {
   try {
-    String redirectUrl;
     if (kIsWeb) {
-      redirectUrl = '${Uri.base.origin}/';
+      // Use OAuth for web
+      final response = await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+      );
+      print('DEBUG: Web Google OAuth completed successfully');
+      return true;
     } else {
-      redirectUrl = 'com.ridewealthassistant.app://login-callback';
+      // Use native Google Sign-In for mobile
+      const webClientId = '171871758415-72482kugocj99k7lt2s8q64s6hp3kmr7.apps.googleusercontent.com';
+      
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: webClientId,
+      );
+      
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        print('Google sign-in was cancelled');
+        return false;
+      }
+      
+      final googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null) {
+        throw 'No Access Token found.';
+      }
+      if (idToken == null) {
+        throw 'No ID Token found.';
+      }
+
+      await supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+      
+      print('DEBUG: Native Google signInWithIdToken completed successfully');
+      return true;
     }
-    print('DEBUG: Using redirectUrl: $redirectUrl');
-    
-    final response = await supabase.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: redirectUrl,
-    );
-    
-    // Note: For OAuth, the user will be logged in via the auth state change listener
-    // which already calls RevenueCatManager.setRevenueCatUser
-    
-    print('DEBUG: OAuth signInWithOAuth completed successfully');
-    return true;
   } catch (e, stack) {
     await ErrorTrackingService.captureAuthError(
       e,
       stack,
       authMethod: 'google',
-      extra: {'redirectUrl': kIsWeb ? '${Uri.base.origin}/' : 'com.ridewealthassistant.app://login-callback'},
+      extra: {'platform': kIsWeb ? 'web' : 'mobile'},
     );
     print('Error signing in with Google: $e');
     return false;
@@ -123,17 +147,24 @@ Future<bool> signInWithGoogle() async {
 
 Future<bool> signInWithApple() async {
   try {
-    final response = await supabase.auth.signInWithOAuth(OAuthProvider.apple);
+    // Use Supabase OAuth for Flutter with explicit redirect URI for Android
+    String redirectUrl = kIsWeb ? '${Uri.base.origin}/' : 'com.ridewealthassistant.app://';
     
-    // Note: For OAuth, the user will be logged in via the auth state change listener
-    // which already calls RevenueCatManager.setRevenueCatUser
+    print('DEBUG: Using Apple redirectUrl: $redirectUrl');
     
+    final response = await supabase.auth.signInWithOAuth(
+      OAuthProvider.apple,
+      redirectTo: redirectUrl,
+    );
+    
+    print('DEBUG: Apple OAuth signInWithOAuth completed successfully');
     return true;
   } catch (e, stack) {
     await ErrorTrackingService.captureAuthError(
       e,
       stack,
       authMethod: 'apple',
+      extra: {'platform': kIsWeb ? 'web' : 'mobile'},
     );
     print('Apple Sign In Error: $e');
     return false;

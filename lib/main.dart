@@ -11,7 +11,6 @@ import 'revenuecat_manager.dart';
 
 import 'screens/main_screen.dart';
 import 'environment.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'subscription_required.dart';
 import 'apple_iap_service.dart';
 import 'google_iap_service.dart';
@@ -47,32 +46,21 @@ void main() async {
       DeviceOrientation.portraitDown,
     ]);
     
-    print('Sentry DSN: ${Environment.sentryDsn}'); // Log DSN for troubleshooting
-    await SentryFlutter.init(
-      (options) {
-        options.dsn = Environment.sentryDsn;
-        options.tracesSampleRate = 1.0;
-        options.enableAutoSessionTracking = true;
-        options.attachStacktrace = true;
-        options.sendDefaultPii = true;
-        options.debug = false; // Disable debug mode to reduce log noise
-        options.beforeSend = (SentryEvent event, {Hint? hint}) {
-          // Filter out sensitive data but keep error context
-          if (event.exceptions != null && event.exceptions!.isNotEmpty) {
-            // Add device info for better debugging
-            final tags = Map<String, String>.from(event.tags ?? {});
-            tags['platform'] = event.platform ?? 'unknown';
-            tags['environment'] = 'production';
-            event = event.copyWith(tags: tags);
-          }
-          return event;
-        };
-      },
-      appRunner: () => runApp(MyApp()),
-    );
+    // Initialize custom error tracking system
+    print('Initializing custom error tracking system');
+    runApp(MyApp());
   } catch (e, stack) {
-    // Capture startup errors in Sentry
-    Sentry.captureException(e, stackTrace: stack);
+    // Capture startup errors in custom error tracking
+    try {
+      await ErrorTrackingService.captureGeneralError(
+        e,
+        stack,
+        context: 'app_startup',
+      );
+    } catch (trackingError) {
+      debugPrint('Failed to track startup error: $trackingError');
+    }
+    
     debugPrint('Startup error: $e');
     debugPrint('Stack: $stack');
     runApp(MaterialApp(
