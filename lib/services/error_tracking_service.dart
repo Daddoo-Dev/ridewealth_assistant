@@ -1,12 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
-import 'dart:convert';
 
 class ErrorTrackingService {
   static final SupabaseClient _supabase = Supabase.instance.client;
   static String? _currentUserId;
-  static String? _currentUserEmail;
 
   // Device info cache to avoid repeated calls
   static Map<String, dynamic>? _deviceInfoCache;
@@ -204,7 +202,6 @@ class ErrorTrackingService {
   static Future<void> setUserContext(String userId, {String? email}) async {
     try {
       _currentUserId = userId;
-      _currentUserEmail = email;
       
       // Clear device info cache when user changes
       _deviceInfoCache = null;
@@ -218,7 +215,6 @@ class ErrorTrackingService {
   static Future<void> clearUserContext() async {
     try {
       _currentUserId = null;
-      _currentUserEmail = null;
       
       // Clear device info cache when user logs out
       _deviceInfoCache = null;

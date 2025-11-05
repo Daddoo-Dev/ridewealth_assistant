@@ -89,8 +89,60 @@ class MileageScreenState extends State<MileageScreen> {
       );
       return;
     }
-    int startMileage = int.parse(startMileageController.text);
-    int endMileage = int.parse(endMileageController.text);
+    
+    // Validate date is not too far in the future
+    if (selectedDate.isAfter(DateTime.now().add(Duration(days: 1)))) {
+      setState(() {
+        error = "Date cannot be more than 1 day in the future.";
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Date cannot be more than 1 day in the future.")),
+      );
+      return;
+    }
+    
+    int startMileage;
+    int endMileage;
+    
+    try {
+      startMileage = int.parse(startMileageController.text);
+      endMileage = int.parse(endMileageController.text);
+    } catch (e) {
+      setState(() {
+        error = "Mileage must be valid numbers.";
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Mileage must be valid numbers.")),
+      );
+      return;
+    }
+    
+    // Validate positive numbers
+    if (startMileage < 0 || endMileage < 0) {
+      setState(() {
+        error = "Mileage cannot be negative.";
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Mileage cannot be negative.")),
+      );
+      return;
+    }
+    
+    // Validate reasonable mileage limits
+    if (startMileage > 999999 || endMileage > 999999) {
+      setState(() {
+        error = "Mileage values are unreasonably high.";
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Mileage values are unreasonably high.")),
+      );
+      return;
+    }
+    
     if (endMileage <= startMileage) {
       setState(() {
         error = "End mileage must be greater than start mileage.";
@@ -98,6 +150,19 @@ class MileageScreenState extends State<MileageScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("End mileage must be greater than start mileage.")),
+      );
+      return;
+    }
+    
+    // Validate reasonable daily mileage
+    int totalMiles = endMileage - startMileage;
+    if (totalMiles > 1000) {
+      setState(() {
+        error = "Daily mileage over 1000 miles seems unreasonable. Please verify.";
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Daily mileage over 1000 miles seems unreasonable.")),
       );
       return;
     }

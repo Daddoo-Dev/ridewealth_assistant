@@ -19,7 +19,7 @@ class DisclaimerScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue, // Use a gradient effect if needed
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             SizedBox(height: 20),
@@ -35,7 +35,7 @@ class DisclaimerScreen extends StatelessWidget {
             SizedBox(height: 20),
             Text(
               '© $currentYear RideWealth Assistant.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
             ),
           ],
         ),

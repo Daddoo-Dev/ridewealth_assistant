@@ -74,7 +74,7 @@ class ExportScreenState extends State<ExportScreen> {
                 padding: const EdgeInsets.only(top: 20),
                 child: Text(
                   error,
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
           ],

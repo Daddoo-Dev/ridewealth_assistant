@@ -34,7 +34,7 @@ class ErrorTrackingService {
         'function': 'captureAuthError',
       };
 
-      final result = await _supabase.from('error_tracking').insert({
+      await _supabase.from('error_tracking').insert({
         'error_type': 'authentication',
         'error_message': error.toString(),
         'stack_trace': stackTrace?.toString(),

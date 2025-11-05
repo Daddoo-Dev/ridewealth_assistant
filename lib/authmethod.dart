@@ -94,7 +94,7 @@ Future<bool> signInWithGoogle() async {
   try {
     if (kIsWeb) {
       // Use OAuth for web
-      final response = await supabase.auth.signInWithOAuth(
+      await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
       );
       print('DEBUG: Web Google OAuth completed successfully');
@@ -152,7 +152,7 @@ Future<bool> signInWithApple() async {
     
     print('DEBUG: Using Apple redirectUrl: $redirectUrl');
     
-    final response = await supabase.auth.signInWithOAuth(
+    await supabase.auth.signInWithOAuth(
       OAuthProvider.apple,
       redirectTo: redirectUrl,
     );

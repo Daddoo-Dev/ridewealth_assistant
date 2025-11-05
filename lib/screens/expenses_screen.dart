@@ -94,8 +94,44 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         localDate =
             DateTime(localDate.year, localDate.month, localDate.day, 12);
 
+        // Validate date is not too far in the future
+        if (localDate.isAfter(DateTime.now().add(Duration(days: 1)))) {
+          setState(() {
+            error = "Date cannot be more than 1 day in the future.";
+          });
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Date cannot be more than 1 day in the future.")),
+          );
+          return;
+        }
+
         double cleanAmount = double.parse(
             amountController.text.replaceAll(RegExp(r'[^0-9.-]'), ''));
+        
+        // Validate positive amount
+        if (cleanAmount <= 0) {
+          setState(() {
+            error = "Expense amount must be greater than zero.";
+          });
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Expense amount must be greater than zero.")),
+          );
+          return;
+        }
+        
+        // Validate reasonable expense limits
+        if (cleanAmount > 50000) {
+          setState(() {
+            error = "Daily expense over \$50,000 seems unreasonable. Please verify.";
+          });
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Daily expense over \$50,000 seems unreasonable.")),
+          );
+          return;
+        }
 
         Map<String, dynamic> expenseData = {
           'amount': double.parse(cleanAmount.toStringAsFixed(2)),

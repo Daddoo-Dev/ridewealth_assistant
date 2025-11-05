@@ -61,10 +61,6 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
     }
   }
 
-  Future<bool> _checkSupabaseSubscription(String userId) async {
-    // Removed Supabase subscription check - now using RevenueCat as source of truth
-    return false;
-  }
 
   Future<void> _purchaseSubscription(Map<String, dynamic> package) async {
     try {

@@ -29,17 +29,11 @@ void main() async {
 
     // Check for existing session and get user ID for RevenueCat
     final currentSession = Supabase.instance.client.auth.currentSession;
-    final initialUserId = currentSession?.user?.id;
+    final initialUserId = currentSession?.user.id;
 
     // Initialize RevenueCat with initial user ID if available
+    // The initialize() method already calls setRevenueCatUser() internally
     await RevenueCatManager.initialize(initialUserId: initialUserId);
-    
-    // If we have a user, do a nuclear reset to clear any anonymous users
-    if (initialUserId != null) {
-      print('Performing nuclear reset to clear anonymous users');
-      await RevenueCatManager.clearAllData();
-      await RevenueCatManager.setRevenueCatUser(initialUserId);
-    }
 
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -64,11 +58,15 @@ void main() async {
     debugPrint('Startup error: $e');
     debugPrint('Stack: $stack');
     runApp(MaterialApp(
+      theme: AppThemes.lightTheme,
+      darkTheme: AppThemes.darkTheme,
       home: Scaffold(
         body: Center(
-          child: Text(
-            'Startup error:\n\nError: $e\n\nStack: $stack',
-            style: TextStyle(color: Colors.red),
+          child: Builder(
+            builder: (context) => Text(
+              'Startup error:\n\nError: $e\n\nStack: $stack',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ),
       ),
@@ -243,12 +241,15 @@ class AuthScreenState extends State<AuthScreen> {
       width: double.infinity,
       height: 48,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue, width: 1.5),
+        border: Border.all(
+          color: AppThemes.primaryColor,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: AppThemes.primaryColor.withOpacity(0.3),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -269,7 +270,11 @@ class AuthScreenState extends State<AuthScreen> {
                   width: 24,
                   height: 24,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.account_circle, size: 24, color: Colors.grey);
+                    return Icon(
+                      Icons.account_circle,
+                      size: 24,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    );
                   },
                 ),
                 SizedBox(width: 12),
@@ -278,7 +283,7 @@ class AuthScreenState extends State<AuthScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -306,14 +311,14 @@ class AuthState extends ChangeNotifier {
     final currentSession = Supabase.instance.client.auth.currentSession;
     if (currentSession?.user != null) {
       print('Found existing session, setting RevenueCat user immediately');
-      RevenueCatManager.setRevenueCatUser(currentSession!.user!.id);
+      RevenueCatManager.setRevenueCatUser(currentSession!.user.id);
     }
     
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       print('=== Auth State Change ===');
       print('Event: ${data.event}');
       print('Session: ${data.session != null ? 'exists' : 'null'}');
-      print('User: ${data.session?.user?.id ?? 'null'}');
+      print('User: ${data.session?.user.id ?? 'null'}');
       
       try {
         _user = data.session?.user;
