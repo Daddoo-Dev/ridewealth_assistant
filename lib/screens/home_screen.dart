@@ -29,18 +29,21 @@ class _HomeScreenState extends State<HomeScreen> {
             .eq('id', user.id)
             .single();
 
+        if (!mounted) return;
         setState(() {
           _userDisplayName = response['name'];
           _loading = false;
         });
       } catch (e) {
         print("Error loading user profile: $e");
+        if (!mounted) return;
         setState(() {
           _userDisplayName = null;
           _loading = false;
         });
       }
     } else {
+      if (!mounted) return;
       setState(() {
         _loading = false;
       });
@@ -132,7 +135,7 @@ class Header extends StatelessWidget {
         style: Theme.of(context)
             .textTheme
             .titleLarge
-            ?.copyWith(color: Colors.white),
+            ?.copyWith(color: Theme.of(context).colorScheme.onPrimary),
       ),
     );
   }

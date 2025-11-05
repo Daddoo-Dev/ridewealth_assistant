@@ -65,12 +65,14 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
     setState(() => _loading = true);
     try {
       await _iapService.restorePurchases();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
       if (!mounted) return;
       setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -84,12 +86,14 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
 
     try {
       await _iapService.purchaseProduct(product);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
       if (!mounted) return;
       setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 

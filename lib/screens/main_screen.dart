@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_themes.dart';
 import 'home_screen.dart';
 import 'mileage_screen.dart';
 import 'income_screen.dart';
@@ -50,7 +49,6 @@ class MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('RideWealth Assistant'),
-        backgroundColor: AppThemes.primaryColor,
       ),
       body: Column(
         children: [
@@ -59,16 +57,25 @@ class MainScreenState extends State<MainScreen> {
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(12),
-              color: Colors.orange.shade100,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.orange.shade900.withOpacity(0.3)
+                  : Colors.orange.shade100,
               child: Row(
                 children: [
-                  Icon(Icons.access_time, color: Colors.orange.shade800),
+                  Icon(
+                    Icons.access_time,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.orange.shade300
+                        : Colors.orange.shade800,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Free Trial: ${_trialStatus!['daysRemaining']} days remaining',
                       style: TextStyle(
-                        color: Colors.orange.shade800,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.orange.shade300
+                            : Colors.orange.shade800,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

@@ -72,8 +72,44 @@ class _IncomeScreenState extends State<IncomeScreen> {
         localDate =
             DateTime(localDate.year, localDate.month, localDate.day, 12);
 
+        // Validate date is not too far in the future
+        if (localDate.isAfter(DateTime.now().add(Duration(days: 1)))) {
+          setState(() {
+            error = "Date cannot be more than 1 day in the future.";
+          });
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Date cannot be more than 1 day in the future.")),
+          );
+          return;
+        }
+
         double cleanAmount = double.parse(
             amountController.text.replaceAll(RegExp(r'[^0-9.-]'), ''));
+        
+        // Validate positive amount
+        if (cleanAmount <= 0) {
+          setState(() {
+            error = "Income amount must be greater than zero.";
+          });
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Income amount must be greater than zero.")),
+          );
+          return;
+        }
+        
+        // Validate reasonable income limits
+        if (cleanAmount > 100000) {
+          setState(() {
+            error = "Daily income over \$100,000 seems unreasonable. Please verify.";
+          });
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Daily income over \$100,000 seems unreasonable.")),
+          );
+          return;
+        }
 
         Map<String, dynamic> incomeData = {
           'amount': double.parse(cleanAmount.toStringAsFixed(2)),

@@ -144,7 +144,7 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
                     error,
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
               if (taxEstimates != null) _buildTaxEstimates(),
@@ -493,7 +493,7 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
             Text(
               'This calculator provides estimates based on your current tax rates and mileage rates. '
               'Actual tax obligations may vary. Please consult with a tax professional for accurate tax planning.',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_themes.dart';
+import '../theme/theme_provider.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
@@ -76,6 +77,23 @@ class UserScreenState extends State<UserScreen> {
               SizedBox(height: 16),
               Text('Please select an option from the menu below.'),
               SizedBox(height: 24),
+              // Theme toggle
+              Card(
+                child: SwitchListTile(
+                  title: Text('Dark Mode'),
+                  subtitle: Text('Toggle between light and dark theme'),
+                  value: Theme.of(context).brightness == Brightness.dark,
+                  onChanged: (bool value) {
+                    Provider.of<ThemeProvider>(context, listen: false).toggleTheme(!value);
+                  },
+                  secondary: Icon(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Icons.dark_mode
+                        : Icons.light_mode,
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
               _buildButton(
                 'User Profile',
                 () => Navigator.push(
@@ -111,7 +129,7 @@ class UserScreenState extends State<UserScreen> {
               _buildButton(
                 'Sign Out',
                 () => handleSignOut(context),
-                color: Colors.red,
+                color: Theme.of(context).colorScheme.error,
               ),
             ],
           ),

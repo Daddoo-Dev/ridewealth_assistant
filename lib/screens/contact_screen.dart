@@ -136,7 +136,7 @@ class ContactScreenState extends State<ContactScreen> {
                   if (_errorMessage.isNotEmpty)
                     Text(
                       _errorMessage,
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
                   SizedBox(height: 16.0),
                   Center(

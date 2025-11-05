@@ -6,6 +6,27 @@
 	],
 	"settings": {
 		"java.configuration.updateBuildConfiguration": "interactive",
-		"powershell.cwd": "ridewealth_assistant_supabase"
+		"powershell.cwd": "ridewealth_assistant_supabase",
+		"todoSync.trackedProjects": [
+			{
+				"path": "c:\\Users\\shawn\\Documents\\github\\ridewealth_assistant_supabase",
+				"notionDatabaseId": "29e78860-176f-80ed-905b-e1b8f7c2adc4",
+				"projectName": "Ridewealth Assistant",
+				"statusOptions": [
+					{
+						"name": "Not started",
+						"color": "gray"
+					},
+					{
+						"name": "In progress",
+						"color": "blue"
+					},
+					{
+						"name": "Done",
+						"color": "green"
+					}
+				]
+			}
+		]
 	}
 }
