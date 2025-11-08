@@ -16,6 +16,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
   List<Map<String, dynamic>> incomes = [];
   TextEditingController amountController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  TextEditingController notesController = TextEditingController();
   DateTime selectedDate = DateTime.now();
 
   String error = "";
@@ -116,6 +117,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           'description': descriptionController.text,
           'date': localDate.toIso8601String(),
           'user_id': _user!.id,
+          'notes': notesController.text.isEmpty ? null : notesController.text,
           'created_at': DateTime.now().toIso8601String()
         };
 
@@ -137,6 +139,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           setState(() {
             amountController.clear();
             descriptionController.clear();
+            notesController.clear();
             selectedDate = DateTime.now();
             editingIncome = null;
             error = '';
@@ -219,6 +222,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
       editingIncome = null;
       amountController.clear();
       descriptionController.clear();
+      notesController.clear();
       selectedDate = DateTime.now();
     });
   }
@@ -301,6 +305,17 @@ class _IncomeScreenState extends State<IncomeScreen> {
                 controller: descriptionController,
                 decoration: AppThemes.inputDecoration
                     .copyWith(labelText: 'Description'),
+              ),
+              SizedBox(height: 12),
+              TextField(
+                controller: notesController,
+                decoration: AppThemes.inputDecoration
+                    .copyWith(
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Add additional notes',
+                    ),
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
               ),
               SizedBox(height: 16),
               Row(

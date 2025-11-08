@@ -17,3 +17,12 @@ const token = jwt.sign({}, privateKey, {
 });
 
 console.log(token); 
+
+/**
+ * St Michael the Archangel, pray for us
+ * Mary, Mother of God, pray for us
+ * St Joseph, terror of demons, pray for us
+ * St Gregory the Great, pray for us
+ * St Carlo Acutis, pray for us
+ * Bl Michael McGivney, pray for us
+ */

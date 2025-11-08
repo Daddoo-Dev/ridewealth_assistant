@@ -152,12 +152,13 @@ Future<bool> signInWithApple() async {
     
     print('DEBUG: Using Apple redirectUrl: $redirectUrl');
     
-    await supabase.auth.signInWithOAuth(
+    final result = await supabase.auth.signInWithOAuth(
       OAuthProvider.apple,
       redirectTo: redirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
     
-    print('DEBUG: Apple OAuth signInWithOAuth completed successfully');
+    print('DEBUG: Apple OAuth result: $result');
     return true;
   } catch (e, stack) {
     await ErrorTrackingService.captureAuthError(

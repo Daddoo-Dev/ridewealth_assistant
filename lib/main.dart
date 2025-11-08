@@ -21,10 +21,16 @@ void main() async {
   try {
     await FeatureFlags.initialize();
 
+    // Load environment variables
+    await Environment.load();
+
     // Initialize Supabase
     await Supabase.initialize(
       url: Environment.supabaseUrl,
       anonKey: Environment.supabaseKey,
+      authOptions: const FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+      ),
     );
 
     // Check for existing session and get user ID for RevenueCat
@@ -162,6 +168,67 @@ class AuthScreen extends StatefulWidget {
 }
 
 class AuthScreenState extends State<AuthScreen> {
+  void _showPasswordResetDialog(BuildContext context) {
+    final emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Reset Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Enter your email address and we\'ll send you a password reset link.'),
+            SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: AppThemes.inputDecoration.copyWith(
+                labelText: 'Email',
+                hintText: 'your@email.com',
+              ),
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (emailController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please enter your email address')),
+                );
+                return;
+              }
+              
+              try {
+                await Supabase.instance.client.auth.resetPasswordForEmail(
+                  emailController.text.trim(),
+                );
+                
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Password reset email sent! Check your inbox.')),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
+            child: Text('Send Reset Link'),
+          ),
+        ],
+      ),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,6 +239,17 @@ class AuthScreenState extends State<AuthScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              TextButton(
+                onPressed: () => _showPasswordResetDialog(context),
+                child: Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: AppThemes.primaryColor,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
               _buildOAuthButton(
                 'Sign in with Google',
                 'https://www.google.com/favicon.ico',
@@ -369,3 +447,13 @@ class AuthState extends ChangeNotifier {
     }
   }
 }
+
+
+/**
+ * St Michael the Archangel, pray for us
+ * Mary, Mother of God, pray for us
+ * St Joseph, terror of demons, pray for us
+ * St Gregory the Great, pray for us
+ * St Carlo Acutis, pray for us
+ * Bl Michael McGivney, pray for us
+ */
