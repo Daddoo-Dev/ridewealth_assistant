@@ -17,6 +17,7 @@ class MileageScreenState extends State<MileageScreen> {
   List<Map<String, dynamic>> mileages = [];
   TextEditingController startMileageController = TextEditingController();
   TextEditingController endMileageController = TextEditingController();
+  TextEditingController notesController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   String error = "";
   bool showTransactions = false;
@@ -172,6 +173,7 @@ class MileageScreenState extends State<MileageScreen> {
       'start_date': selectedDate.toIso8601String(),
       'end_date': selectedDate.toIso8601String(),
       'user_id': _user.id,
+      'notes': notesController.text.isEmpty ? null : notesController.text,
       'created_at': DateTime.now().toIso8601String()
     };
     try {
@@ -181,6 +183,7 @@ class MileageScreenState extends State<MileageScreen> {
       setState(() {
         startMileageController.clear();
         endMileageController.clear();
+        notesController.clear();
         selectedDate = DateTime.now();
         error = '';
       });
@@ -349,6 +352,17 @@ class MileageScreenState extends State<MileageScreen> {
                 decoration: AppThemes.inputDecoration
                     .copyWith(labelText: 'End Mileage'),
                 keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: notesController,
+                decoration: AppThemes.inputDecoration
+                    .copyWith(
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Add notes about this trip',
+                    ),
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
               ),
               SizedBox(height: 16),
               ElevatedButton(

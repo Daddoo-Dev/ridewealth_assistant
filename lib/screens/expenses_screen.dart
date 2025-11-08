@@ -16,6 +16,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   List<Map<String, dynamic>> expenses = [];
   TextEditingController amountController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  TextEditingController notesController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   String category = '';
   String error = "";
@@ -139,6 +140,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           'date': localDate.toIso8601String(),
           'category': category,
           'user_id': user.id,
+          'notes': notesController.text.isEmpty ? null : notesController.text,
           'created_at': DateTime.now().toIso8601String()
         };
 
@@ -160,6 +162,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           setState(() {
             amountController.clear();
             descriptionController.clear();
+            notesController.clear();
             selectedDate = DateTime.now();
             category = '';
             editingExpense = null;
@@ -244,6 +247,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       editingExpense = null;
       amountController.clear();
       descriptionController.clear();
+      notesController.clear();
       selectedDate = DateTime.now();
       category = '';
     });
@@ -329,6 +333,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     .copyWith(labelText: 'Description'),
               ),
               SizedBox(height: 16),
+              TextField(
+                controller: notesController,
+                decoration: AppThemes.inputDecoration
+                    .copyWith(
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Add additional notes',
+                    ),
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -392,6 +407,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     },
                   ),
                 ],
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: notesController,
+                decoration: AppThemes.inputDecoration
+                    .copyWith(
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Add additional notes',
+                    ),
+                maxLines: 2,
+                textCapitalization: TextCapitalization.sentences,
               ),
               SizedBox(height: 16),
               ElevatedButton(

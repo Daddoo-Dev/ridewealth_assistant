@@ -48,6 +48,7 @@ flutter:
     - assets/icons/
     - assets/googlelogo.svg
     - assets/applelogo.svg
+    - env.json
 # St. Carlo, pray for us
 # St. Joseph, pray for us
 # St. Michael, the Archangel, pray for us

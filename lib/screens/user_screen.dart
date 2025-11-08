@@ -15,6 +15,91 @@ class UserScreen extends StatefulWidget {
 }
 
 class UserScreenState extends State<UserScreen> {
+  void _showAboutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('About RideWealth Assistant'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'RideWealth Assistant',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text('Version 1.0.18'),
+              SizedBox(height: 16),
+              Text(
+                'A financial assistant for rideshare and gig economy drivers to track mileage, income, expenses, and calculate quarterly estimated tax obligations.',
+              ),
+              SizedBox(height: 16),
+              Divider(),
+              SizedBox(height: 8),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DisclaimerScreen()),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Disclaimer',
+                    style: TextStyle(
+                      color: AppThemes.primaryColor,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ContactScreen()),
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Contact Support',
+                    style: TextStyle(
+                      color: AppThemes.primaryColor,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                '© ${DateTime.now().year} RideWealth Assistant',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> handleSignOut(BuildContext context) async {
     print("Sign out button pressed");
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -124,6 +209,11 @@ class UserScreenState extends State<UserScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => ContactScreen()),
                 ),
+              ),
+              SizedBox(height: 12),
+              _buildButton(
+                'About',
+                () => _showAboutDialog(context),
               ),
               SizedBox(height: 24),
               _buildButton(
