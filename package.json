@@ -15,6 +15,6 @@
   "type": "commonjs",
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
-    "supabase": "^2.30.4"
+    "supabase": "^2.72.8"
   }
 }
