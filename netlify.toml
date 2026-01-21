@@ -1,5 +1,5 @@
 [build]
-  command = "flutter build web"
+  command = "echo {\"SUPABASE_URL\":\"$SUPABASE_URL\",\"SUPABASE_KEY\":\"$SUPABASE_KEY\"} > env.json && flutter build web"
   publish = "build/web"
 
 [[redirects]]
