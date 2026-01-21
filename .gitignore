@@ -52,7 +52,16 @@ app.*.map.json
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
-uberdriver-2941d-06cee99cbdee.json
+uberdriver-*.json
+*.json
+!package.json
+!package-lock.json
+!pubspec.yaml
+!analysis_options.yaml
+!**/manifest.json
+!**/Contents.json
+!**/tsconfig.json
+!**/deno.json
 
 # Android key properties file
 **/android/**/key.properties
