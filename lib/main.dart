@@ -443,11 +443,6 @@ class AuthState extends ChangeNotifier {
       _user = null;
       notifyListeners();
     } catch (e, stack) {
-      await ErrorTrackingService.captureAuthError(
-        e,
-        stack,
-        authMethod: 'signout',
-      );
       print('Sign out error in AuthState: $e');
       rethrow;
     }
