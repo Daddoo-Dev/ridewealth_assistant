@@ -19,9 +19,7 @@ import 'dart:io' show Platform;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await FeatureFlags.initialize();
-
-    // Initialize Supabase
+    // Initialize Supabase first
     await Supabase.initialize(
       url: Environment.supabaseUrl,
       anonKey: Environment.supabaseKey,
@@ -29,6 +27,9 @@ void main() async {
         authFlowType: AuthFlowType.pkce,
       ),
     );
+
+    // Then initialize feature flags (requires Supabase to be initialized)
+    await FeatureFlags.initialize();
 
     // Check for existing session and get user ID for RevenueCat
     final currentSession = Supabase.instance.client.auth.currentSession;
