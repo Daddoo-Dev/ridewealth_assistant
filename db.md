@@ -10,8 +10,6 @@ User profile information and settings.
 **Columns:**
 - `id` (UUID, PRIMARY KEY, NOT NULL, DEFAULT: `auth.uid()`) - User ID matching Supabase Auth user ID
 - `email` (TEXT, NOT NULL) - User's email address
-- `last_login` (TIMESTAMPTZ, NULLABLE) - Last login timestamp
-- `name` (TEXT, NULLABLE) - User's display name
 - `phone` (TEXT, NULLABLE) - User's phone number
 - `address` (TEXT, NULLABLE) - Street address
 - `city` (TEXT, NULLABLE) - City
@@ -40,65 +38,6 @@ User profile information and settings.
 - RLS is enabled
 - The `id` column defaults to `auth.uid()` ensuring it matches the authenticated user's ID
 - User document is created automatically on first sign-in via `createSupabaseUserDocument()`
-
----
-
-### `error_tracking`
-Custom error logging system for tracking application errors.
-
-**Columns:**
-- `id` (UUID, PRIMARY KEY, DEFAULT: `gen_random_uuid()`) - Unique error ID
-- `error_type` (TEXT, NOT NULL, CHECK: `IN ('authentication', 'database', 'ui', 'general')`) - Error category
-- `error_message` (TEXT, NOT NULL) - Error message text
-- `stack_trace` (TEXT, NULLABLE) - Stack trace if available
-- `user_id` (UUID, NULLABLE, REFERENCES `users(id)` ON DELETE SET NULL) - User who encountered the error
-- `platform` (TEXT, NULLABLE) - Platform (iOS, Android, Web)
-- `app_version` (TEXT, NULLABLE) - App version (auto-set from device_info via trigger)
-- `device_info` (JSONB, NULLABLE) - Device information object
-- `context` (JSONB, NULLABLE) - Additional context data
-- `tags` (JSONB, NULLABLE) - Error tags for categorization
-- `created_at` (TIMESTAMPTZ, DEFAULT: `NOW()`) - When error occurred
-- `resolved_at` (TIMESTAMPTZ, NULLABLE) - When error was resolved
-- `resolved_by` (UUID, NULLABLE, REFERENCES `users(id)` ON DELETE SET NULL) - User who resolved the error
-- `resolution_notes` (TEXT, NULLABLE) - Notes about resolution
-
-**Indexes:**
-- `idx_error_tracking_error_type` on `error_type`
-- `idx_error_tracking_user_id` on `user_id`
-- `idx_error_tracking_created_at` on `created_at`
-- `idx_error_tracking_resolved_at` on `resolved_at`
-
-**Triggers:**
-- `trigger_set_app_version` - Automatically sets `app_version` from `device_info->>'app_version'` before INSERT
-
-**Views:**
-- `error_analytics` - Aggregated error statistics by type, platform, version, and date (service_role only)
-
-**RLS Policies:**
-- **Users can insert their own errors** (INSERT)
-  - `WITH CHECK ((auth.uid() = user_id) OR (user_id IS NULL))`
-  - Allows authenticated users to log errors with their user_id or NULL user_id
-  
-- **Service role can insert any error** (INSERT)
-  - `WITH CHECK (auth.role() = 'service_role')`
-  - Allows service role to insert errors for any user
-  
-- **Users can view their own errors** (SELECT)
-  - `USING ((auth.uid() = user_id) OR (user_id IS NULL))`
-  - Users can see errors they created or errors with NULL user_id
-  
-- **Service role can view all errors** (SELECT)
-  - `USING (auth.role() = 'service_role')`
-  - Service role can view all errors
-  
-- **Service role can update errors** (UPDATE)
-  - `USING (auth.role() = 'service_role')`
-  - Service role can update errors (for resolution tracking)
-
-**Notes:**
-- RLS is enabled
-- Supports logging errors before user authentication (NULL user_id)
-- Auto-extracts app_version from device_info JSONB field
 
 ---
 
@@ -206,16 +145,8 @@ Service role typically has full access for administrative operations:
 
 ## Migration Files
 
-1. **20241220000000_create_error_tracking_table.sql**
-   - Creates `error_tracking` table
-   - Sets up RLS policies
-   - Creates indexes and triggers
-   - Creates analytics view
-
-2. **20250121000000_fix_rls_policies.sql**
+1. **20250121000000_fix_rls_policies.sql**
    - Fixes RLS policies for `users` table (splits ALL policy into separate INSERT/SELECT/UPDATE)
-   - Updates `error_tracking` INSERT policy to allow NULL user_id
-   - Ensures service role policy exists
 
 ---
 
@@ -231,10 +162,6 @@ Service role typically has full access for administrative operations:
 ### Issue: User document creation fails during signup
 **Cause:** INSERT policy requires `id = auth.uid()` but timing may be off
 **Solution:** Policy allows users to insert their own row with matching ID
-
-### Issue: Error logging fails with NULL user_id
-**Cause:** Policy may not allow NULL user_id
-**Solution:** `error_tracking` policy explicitly allows `user_id IS NULL` for pre-auth errors
 
 ---
 

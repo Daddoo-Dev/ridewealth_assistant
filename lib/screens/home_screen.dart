@@ -20,34 +20,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    final user = Provider.of<AuthState>(context, listen: false).user;
-    if (user != null) {
-      try {
-        final response = await supabase.Supabase.instance.client
-            .from('users')
-            .select('name')
-            .eq('id', user.id)
-            .single();
-
-        if (!mounted) return;
-        setState(() {
-          _userDisplayName = response['name'];
-          _loading = false;
-        });
-      } catch (e) {
-        print("Error loading user profile: $e");
-        if (!mounted) return;
-        setState(() {
-          _userDisplayName = null;
-          _loading = false;
-        });
-      }
-    } else {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-      });
-    }
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+    });
   }
 
   @override

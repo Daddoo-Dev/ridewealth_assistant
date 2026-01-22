@@ -10,7 +10,6 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
@@ -36,7 +35,6 @@ class ProfileScreenState extends State<ProfileScreen> {
 
         var data = response;
         setState(() {
-          _nameController.text = data['name'] ?? '';
           _emailController.text = data['email'] ?? '';
           _phoneController.text = data['phone'] ?? '';
 
@@ -74,7 +72,6 @@ class ProfileScreenState extends State<ProfileScreen> {
               .from('users')
               .upsert({
             'id': user.id,
-            'name': _nameController.text,
             'email': _emailController.text,
             'phone': _phoneController.text,
             'address': fullAddress,
@@ -109,13 +106,6 @@ class ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
-                validator: (value) =>
-                value!.isEmpty ? 'Please enter your name' : null,
-              ),
-              SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(labelText: 'Email'),
