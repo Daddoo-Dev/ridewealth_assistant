@@ -4,7 +4,7 @@ class Environment {
     defaultValue: '',
   );
   static const String supabaseKey = String.fromEnvironment(
-    'SUPABASE_KEY',
+    'SUPABASE_ANON_PUBLIC',
     defaultValue: '',
   );
 }

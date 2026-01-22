@@ -22,6 +22,9 @@ void main() async {
   try {
     await FeatureFlags.initialize();
 
+    // Load environment variables
+    await Environment.load();
+
     // Initialize Supabase
     await Supabase.initialize(
       url: Environment.supabaseUrl,
