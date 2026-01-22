@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeatureFlags {
   static final Map<String, dynamic> _flags = {};
@@ -16,19 +15,8 @@ class FeatureFlags {
   static const bool _bypassSubscriptionCheck = true;
 
   static Future<void> initialize() async {
-    try {
-      // Try to fetch feature flags from Supabase
-      final response = await Supabase.instance.client
-          .from('feature_flags')
-          .select()
-          .single();
-      
-      _flags.addAll(response);
-    } catch (e) {
-      print('Error loading feature flags from Supabase: $e');
-      // Fall back to defaults
-      _flags.addAll(defaults);
-    }
+    // Use defaults (feature_flags table doesn't exist)
+    _flags.addAll(defaults);
     
     // In debug mode, override with development settings
     // Note: _bypassSubscriptionCheck takes precedence over these settings
