@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
 import 'services/feature_flag_service.dart' show FeatureFlags;
-import 'services/error_tracking_service.dart';
 import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 
@@ -21,9 +20,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await FeatureFlags.initialize();
-
-    // Load environment variables
-    await Environment.load();
 
     // Initialize Supabase
     await Supabase.initialize(
@@ -47,20 +43,10 @@ void main() async {
       DeviceOrientation.portraitDown,
     ]);
     
-    // Initialize custom error tracking system
-    print('Initializing custom error tracking system');
     runApp(MyApp());
   } catch (e, stack) {
-    // Capture startup errors in custom error tracking
-    try {
-      await ErrorTrackingService.captureGeneralError(
-        e,
-        stack,
-        context: 'app_startup',
-      );
-    } catch (trackingError) {
-      debugPrint('Failed to track startup error: $trackingError');
-    }
+    debugPrint('Startup error: $e');
+    debugPrint('Stack: $stack');
     
     debugPrint('Startup error: $e');
     debugPrint('Stack: $stack');
@@ -289,12 +275,6 @@ class AuthScreenState extends State<AuthScreen> {
         );
       }
     } catch (e, stack) {
-      await ErrorTrackingService.captureUIError(
-        e,
-        stack,
-        screen: 'auth_screen',
-        action: _isSignUp ? 'email_signup' : 'email_signin',
-      );
       if (!mounted) return;
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again.')),
@@ -446,11 +426,6 @@ class AuthState extends ChangeNotifier {
         }
         notifyListeners();
       } catch (e, stack) {
-        await ErrorTrackingService.captureGeneralError(
-          e,
-          stack,
-          context: 'auth_state_change',
-        );
         print('Auth state change error: $e');
       }
       print('=== End Auth State Change ===');
