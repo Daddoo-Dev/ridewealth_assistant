@@ -3,7 +3,7 @@ description: A financial assistant for rideshare and gig drivers.
 
 publish_to: "none"
 
-version: 1.0.19+19
+version: 1.0.19+20
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
