@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import '../theme/app_themes.dart';
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -30,9 +31,7 @@ class ExportScreenState extends State<ExportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('RideWealth Assistant'),
-      ),
+      appBar: AppThemes.buildAppBar(context, 'RideWealth Assistant'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

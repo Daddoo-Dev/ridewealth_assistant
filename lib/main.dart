@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
-import 'services/feature_flag_service.dart';
+import 'services/feature_flag_service.dart' show FeatureFlags;
 import 'services/error_tracking_service.dart';
 import 'authmethod.dart';
 import 'revenuecat_manager.dart';
@@ -14,6 +14,7 @@ import 'environment.dart';
 import 'subscription_required.dart';
 import 'apple_iap_service.dart';
 import 'google_iap_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
 void main() async {
@@ -133,9 +134,16 @@ class AuthWrapperState extends State<AuthWrapper> {
                 return MainScreen();
               } else {
                 // Force subscription screen
-                return SubscriptionRequiredScreen(
-                  iapService: Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
-                );
+                // On web, IAP services aren't available - RevenueCat handles web subscriptions
+                if (kIsWeb) {
+                  return SubscriptionRequiredScreen(
+                    iapService: null,
+                  );
+                } else {
+                  return SubscriptionRequiredScreen(
+                    iapService: Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
+                  );
+                }
               }
             },
           );
@@ -147,6 +155,11 @@ class AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<bool> _checkSubscriptionStatus() async {
+    // Bypass subscription check if feature flag is disabled
+    if (!FeatureFlags.subscriptionCheckEnabled) {
+      return true;
+    }
+    
     try {
       // Check if user has active subscription or trial
       final isSubscribed = await RevenueCatManager.isSubscribed();
@@ -168,6 +181,19 @@ class AuthScreen extends StatefulWidget {
 }
 
 class AuthScreenState extends State<AuthScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isSignUp = false;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   void _showPasswordResetDialog(BuildContext context) {
     final emailController = TextEditingController();
     
@@ -228,143 +254,148 @@ class AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
+
+  Future<void> _handleSubmit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      AuthResponse? response;
+      if (_isSignUp) {
+        response = await signUpWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+      } else {
+        response = await signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+      }
+
+      if (!mounted) return;
+
+      if (response?.user != null) {
+        // Success - AuthState will handle navigation
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(_isSignUp 
+              ? 'Failed to create account. Please try again.'
+              : 'Invalid email or password. Please try again.'),
+          ),
+        );
+      }
+    } catch (e, stack) {
+      await ErrorTrackingService.captureUIError(
+        e,
+        stack,
+        screen: 'auth_screen',
+        action: _isSignUp ? 'email_signup' : 'email_signin',
+      );
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Sign In')),
+      appBar: AppBar(title: Text(_isSignUp ? 'Sign Up' : 'Sign In')),
       body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () => _showPasswordResetDialog(context),
-                child: Text(
-                  'Forgot Password?',
-                  style: TextStyle(
-                    color: AppThemes.primaryColor,
-                    decoration: TextDecoration.underline,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: AppThemes.inputDecoration.copyWith(
+                      labelText: 'Email',
+                      hintText: 'your@email.com',
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    enabled: !_isLoading,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ),
-              SizedBox(height: 16),
-              _buildOAuthButton(
-                'Sign in with Google',
-                'https://www.google.com/favicon.ico',
-                () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  try {
-                    final result = await signInWithGoogle();
-                    if (!result) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                'Failed to sign in with Google. Please try again.')),
-                      );
-                    }
-                  } catch (e, stack) {
-                    await ErrorTrackingService.captureUIError(
-                      e,
-                      stack,
-                      screen: 'auth_screen',
-                      action: 'google_sign_in',
-                    );
-                    print('Google sign in UI error: $e');
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(content: Text('An error occurred. Please try again.')),
-                    );
-                  }
-                },
-              ),
-              SizedBox(height: 16),
-              _buildOAuthButton(
-                'Sign in with Apple',
-                'https://www.apple.com/favicon.ico',
-                () async {
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  try {
-                    final result = await signInWithApple();
-                    if (!result) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                            content: Text(
-                                'Failed to sign in with Apple. Please try again.')),
-                      );
-                    }
-                  } catch (e, stack) {
-                    await ErrorTrackingService.captureUIError(
-                      e,
-                      stack,
-                      screen: 'auth_screen',
-                      action: 'apple_sign_in',
-                    );
-                    print('Apple sign in UI error: $e');
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(content: Text('An error occurred. Please try again.')),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOAuthButton(String text, String logoUrl, VoidCallback onPressed) {
-    return Container(
-      width: double.infinity,
-      height: 48,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppThemes.primaryColor,
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppThemes.primaryColor.withOpacity(0.3),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: onPressed,
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Image.network(
-                  logoUrl,
-                  width: 24,
-                  height: 24,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.account_circle,
-                      size: 24,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                    );
-                  },
-                ),
-                SizedBox(width: 12),
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface,
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: AppThemes.inputDecoration.copyWith(
+                      labelText: 'Password',
+                      hintText: 'Enter your password',
+                    ),
+                    obscureText: true,
+                    enabled: !_isLoading,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your password';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ],
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _isLoading ? null : () => _showPasswordResetDialog(context),
+                    child: Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: AppThemes.primaryColor,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _handleSubmit,
+                    child: _isLoading 
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isSignUp ? 'Sign Up' : 'Sign In'),
+                  ),
+                  SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _isLoading ? null : () {
+                      setState(() {
+                        _isSignUp = !_isSignUp;
+                        _passwordController.clear();
+                      });
+                    },
+                    child: Text(
+                      _isSignUp 
+                        ? 'Already have an account? Sign In'
+                        : 'Don\'t have an account? Sign Up',
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

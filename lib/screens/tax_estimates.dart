@@ -46,14 +46,18 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
   bool applyMileageToState = true;
 
   final List<String> periods = [
-    "Q1 2024",
-    "Q2 2024",
-    "Q3 2024",
-    "Q4 2024",
-    "Q1 2025",
-    "Q2 2025",
-    "Q3 2025",
-    "Q4 2025",
+    "Q1 2026",
+    "Q2 2026",
+    "Q3 2026",
+    "Q4 2026",
+    "Q1 2027",
+    "Q2 2027",
+    "Q3 2027",
+    "Q4 2027",
+    "Q1 2028",
+    "Q2 2028",
+    "Q3 2028",
+    "Q4 2028",
   ];
 
   final MileageCalculator mileageCalculator = MileageCalculator();

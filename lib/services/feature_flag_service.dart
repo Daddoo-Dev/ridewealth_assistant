@@ -11,6 +11,9 @@ class FeatureFlags {
     'subscription_required_screen_enabled': false,
     'store_redirect_enabled': false,
   };
+  
+  // Override for testing - set to false to bypass subscription checks
+  static const bool _bypassSubscriptionCheck = true;
 
   static Future<void> initialize() async {
     try {
@@ -28,7 +31,8 @@ class FeatureFlags {
     }
     
     // In debug mode, override with development settings
-    if (kDebugMode) {
+    // Note: _bypassSubscriptionCheck takes precedence over these settings
+    if (kDebugMode && !_bypassSubscriptionCheck) {
       _flags['subscriptions_enabled'] = true;
       _flags['subscription_check_enabled'] = true;
       _flags['subscription_required_screen_enabled'] = true;
@@ -40,7 +44,7 @@ class FeatureFlags {
       _flags['subscriptions_enabled'] ?? defaults['subscriptions_enabled']!;
       
   static bool get subscriptionCheckEnabled =>
-      subscriptionsEnabled && (_flags['subscription_check_enabled'] ?? defaults['subscription_check_enabled']!);
+      !_bypassSubscriptionCheck && subscriptionsEnabled && (_flags['subscription_check_enabled'] ?? defaults['subscription_check_enabled']!);
       
   static bool get subscriptionRequiredScreenEnabled =>
       subscriptionsEnabled && (_flags['subscription_required_screen_enabled'] ?? defaults['subscription_required_screen_enabled']!);

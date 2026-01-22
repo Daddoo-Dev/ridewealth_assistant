@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
 
 class AppThemes {
   static const Color primaryColor = Colors.blue;
@@ -43,6 +45,8 @@ class AppThemes {
   );
 
   static InputDecoration get inputDecoration => InputDecoration(
+        filled: true,
+        fillColor: Colors.grey[200], // Light background for light theme
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -91,18 +95,26 @@ class AppThemes {
     useMaterial3: true,
     colorSchemeSeed: accentColor,
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: Colors.grey[900],
+    // Material Design dark background: #121212
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    // Card theme for elevated surfaces
+    cardTheme: CardThemeData(
+      color: const Color(0xFF1E1E1E), // Elevated surface color
+      elevation: 0,
+    ),
+    // AppBar with distinct elevation-based color (15% lighter)
     appBarTheme: AppBarTheme(
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF404040), // Surface color (elevation 1) - 15% lighter
       elevation: 0,
       centerTitle: true,
       titleTextStyle: titleLarge.copyWith(color: Colors.white),
       foregroundColor: Colors.white,
-      surfaceTintColor: accentColor,
+      surfaceTintColor: Colors.transparent,
     ),
+    // NavigationBar with distinct surface color (elevation 2 - lighter than AppBar, 15% lighter)
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: Colors.grey[900],
-      indicatorColor: accentColor.withOpacity(0.1),
+      backgroundColor: const Color(0xFF454545), // Lighter surface color for contrast - 15% lighter
+      indicatorColor: accentColor.withOpacity(0.2),
       labelTextStyle: WidgetStateProperty.all(
         bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white70),
       ),
@@ -110,8 +122,25 @@ class AppThemes {
         IconThemeData(color: accentColor),
       ),
     ),
+    // Input decoration with distinct background
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF1E1E1E), // Surface color for inputs
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[700]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[700]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2.0),
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(style: elevatedButtonStyle),
-    inputDecorationTheme: inputDecorationTheme,
     textTheme: TextTheme(
       titleLarge: titleLarge.copyWith(color: Colors.white),
       titleMedium: titleMedium.copyWith(color: Colors.white),
@@ -120,4 +149,22 @@ class AppThemes {
       bodyMedium: bodyMedium.copyWith(color: Colors.white70),
     ),
   );
+
+  static AppBar buildAppBar(BuildContext context, String title) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return AppBar(
+      title: Text(title),
+      actions: [
+        IconButton(
+          icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+          onPressed: () {
+            themeProvider.toggleTheme(isDarkMode);
+          },
+          tooltip: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+        ),
+      ],
+    );
+  }
 }

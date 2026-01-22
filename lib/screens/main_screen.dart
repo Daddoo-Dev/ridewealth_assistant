@@ -6,6 +6,7 @@ import 'expenses_screen.dart';
 import 'tax_estimates.dart';
 import 'user_screen.dart';
 import '../revenuecat_manager.dart';
+import '../theme/app_themes.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -47,9 +48,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('RideWealth Assistant'),
-      ),
+      appBar: AppThemes.buildAppBar(context, 'RideWealth Assistant'),
       body: Column(
         children: [
           // Trial status banner

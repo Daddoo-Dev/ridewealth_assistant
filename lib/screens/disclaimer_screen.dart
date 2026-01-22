@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_themes.dart';
 
 class DisclaimerScreen extends StatelessWidget {
   @override
@@ -6,9 +7,7 @@ class DisclaimerScreen extends StatelessWidget {
     final int currentYear = DateTime.now().year;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Disclaimer'),
-      ),
+      appBar: AppThemes.buildAppBar(context, 'Disclaimer'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

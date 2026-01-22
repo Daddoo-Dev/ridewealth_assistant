@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../delete_account_button.dart';
+import '../theme/app_themes.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -100,9 +101,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('User Profile'),
-      ),
+      appBar: AppThemes.buildAppBar(context, 'User Profile'),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Form(
@@ -116,36 +115,42 @@ class ProfileScreenState extends State<ProfileScreen> {
                 validator: (value) =>
                 value!.isEmpty ? 'Please enter your name' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(labelText: 'Email'),
                 validator: (value) =>
                 value!.isEmpty ? 'Please enter your email' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
                 decoration: InputDecoration(labelText: 'Phone'),
                 validator: (value) =>
                 value!.isEmpty ? 'Please enter your phone number' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _addressController,
                 decoration: InputDecoration(labelText: 'Address'),
                 validator: (value) =>
                 value!.isEmpty ? 'Please enter your address' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _cityController,
                 decoration: InputDecoration(labelText: 'City'),
                 validator: (value) =>
                 value!.isEmpty ? 'Please enter your city' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _stateController,
                 decoration: InputDecoration(labelText: 'State'),
                 validator: (value) =>
                 value!.isEmpty ? 'Please enter your state' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _zipController,
                 decoration: InputDecoration(labelText: 'ZIP Code'),
@@ -153,10 +158,29 @@ class ProfileScreenState extends State<ProfileScreen> {
                 value!.isEmpty ? 'Please enter your ZIP code' : null,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _updateProfile,
-                child: Text('Update Profile'),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Note: Phone number and address information are collected solely for account identification purposes to ensure account uniqueness and prevent duplicate accounts. Personal data is not and will not be collected, shared, or sold for any purpose.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _updateProfile,
+                  child: Text('Update Profile'),
+                ),
+              ),
+              SizedBox(height: 12),
               DeleteAccountButton(),
             ],
           ),

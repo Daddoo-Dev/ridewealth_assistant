@@ -226,7 +226,7 @@ class MileageScreenState extends State<MileageScreen> {
     });
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Start mileage saved locally.")),
+      SnackBar(content: Text("Start Mileage Saved")),
     );
   }
 

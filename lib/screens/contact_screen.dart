@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../theme/app_themes.dart';
 
 class ContactScreen extends StatefulWidget {
   @override
@@ -68,7 +69,7 @@ class ContactScreenState extends State<ContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Contact RideWealth Assistant')),
+      appBar: AppThemes.buildAppBar(context, 'Contact RideWealth Assistant'),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

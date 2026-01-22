@@ -19,19 +19,17 @@
 
   <title>RideWealth Assistant</title>
   <link rel="manifest" href="manifest.json">
-
-  <script src="flutter.js" defer></script>
 </head>
 <body>
   <script>
-    window.addEventListener('load', function(ev) {
-      _flutter.loader.loadEntrypoint({
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
+    {{flutter_js}}
+    {{flutter_build_config}}
+    _flutter.loader.load({
+      onEntrypointLoaded: function(engineInitializer) {
+        engineInitializer.initializeEngine().then(function(appRunner) {
+          appRunner.runApp();
+        });
+      }
     });
   </script>
 </body>
