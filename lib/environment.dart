@@ -13,5 +13,9 @@ class Environment {
     'SUPABASE_KEY',
     defaultValue: '',
   );
-  static const String supabaseKey = _anonPublic.isNotEmpty ? _anonPublic : _key;
+  
+  // Use SUPABASE_ANON_PUBLIC if provided, otherwise fallback to SUPABASE_KEY
+  static String get supabaseKey {
+    return _anonPublic != '' ? _anonPublic : _key;
+  }
 }
