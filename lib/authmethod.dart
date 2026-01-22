@@ -13,13 +13,7 @@ Future<void> createSupabaseUserDocument(User user) async {
         .eq('id', user.id)
         .single();
     
-    // User exists, update last login
-    await supabase
-        .from('users')
-        .update({
-          'last_login': DateTime.now().toIso8601String(),
-        })
-        .eq('id', user.id);
+    // User exists, no need to update anything
   } catch (e) {
     // User doesn't exist, create new user
     try {
@@ -27,17 +21,20 @@ Future<void> createSupabaseUserDocument(User user) async {
         'id': user.id,
         'email': user.email,
         'created_at': DateTime.now().toIso8601String(),
-        'last_login': DateTime.now().toIso8601String(),
       });
     } catch (insertError, insertStack) {
-      // Capture database errors in Sentry
-      await ErrorTrackingService.captureDatabaseError(
-        insertError,
-        insertStack,
-        operation: 'create_user',
-        table: 'users',
-        userId: user.id,
-      );
+      // Capture database errors (but don't fail if error_tracking doesn't exist)
+      try {
+        await ErrorTrackingService.captureDatabaseError(
+          insertError,
+          insertStack,
+          operation: 'create_user',
+          table: 'users',
+          userId: user.id,
+        );
+      } catch (_) {
+        // Ignore error tracking failures
+      }
       print('Error creating user document: $insertError');
       rethrow;
     }
