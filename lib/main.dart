@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
-import 'services/feature_flag_service.dart' show FeatureFlags;
 import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 
@@ -27,9 +26,6 @@ void main() async {
         authFlowType: AuthFlowType.pkce,
       ),
     );
-
-    // Then initialize feature flags (requires Supabase to be initialized)
-    await FeatureFlags.initialize();
 
     // Check for existing session and get user ID for RevenueCat
     final currentSession = Supabase.instance.client.auth.currentSession;
@@ -142,11 +138,6 @@ class AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<bool> _checkSubscriptionStatus() async {
-    // Bypass subscription check if feature flag is disabled
-    if (!FeatureFlags.subscriptionCheckEnabled) {
-      return true;
-    }
-    
     try {
       // Check if user has active subscription or trial
       final isSubscribed = await RevenueCatManager.isSubscribed();

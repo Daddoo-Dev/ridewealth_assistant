@@ -1,0 +1,2 @@
+appstore.reviewer@example.com
+testingtesting

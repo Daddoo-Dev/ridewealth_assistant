@@ -1,0 +1,46 @@
+Check export in Ridewealth 
+Ridewealth check that subscription is set correctly for both stores, ready to go
+
+
+
+
+
+ok talking about getting an app into native stores through the approval process. if I have iap and give them an email address with an active subscription, say for the next year, that should work for testing and approval
+
+Yes, providing reviewers with an email tied to an active IAP subscription (valid for a year) is a standard, reliable way to get through both Apple App Store and Google Play approval for subscription-based apps.[1][6]
+
+## Apple App Store process
+
+Include test account details in **App Review Information** (under App Store Connect > your app version > App Review Devices).
+
+- List the email/username with active subscription entitlement.
+- Exact steps: "Create account via signup screen > purchase Annual Pro subscription using this email: test@example.com (password: testpass)".
+- They log in during review; your backend/RevenueCat confirms active status—no sandbox needed for live subs.[4]
+
+## Google Play process
+
+Add under **App content > Content rating** or **Testing** notes in Play Console.
+
+- For IAP apps: "Use test account test@gmail.com (already subscribed to Annual plan, valid through 2027)".
+- Testers in internal/closed tracks get free access if internal, but reviewers use production and need real purchase or your active sub credentials.[6]
+- New accounts: Still need 12+ testers for 14 days first, but IAP works fine once eligible.[2]
+
+## Pro tips for smooth approval
+
+- **Screenshots/Promo Video**: Show both locked (paywall) and unlocked (post-sub) states clearly.
+- **Privacy Policy**: Must link a real policy mentioning subscription data handling.
+- **Flutter in-app-purchase**: Ensure RevenueCat or official plugins handle restore purchases gracefully—reviewers test that.
+- If rejected: Usually "IAP not functioning" → resubmit with clearer instructions + longer sub validity.
+
+This gets 95% of subscription apps approved on first try since reviewers just need to verify the paywall/sub flow works end-to-end.[1][4]
+
+Citations:
+[1] Everything you need to submit your app to Google Play - AppMySite https://blog.appmysite.com/the-google-play-checklist-everything-you-need-to-submit-your-app-to-google-play/
+[2] App testing requirements for new personal developer accounts https://support.google.com/googleplay/android-developer/answer/14151465?hl=en
+[3] New App Testing Requirements for Google Play Store Accounts https://www.webtonative.com/blog/new-playstore-account-requirements
+[4] How to Obtain App Approval on App Store and Google Play? https://incora.software/insights/app-approval-on-app-store-and-google-play
+[5] Google Play Policy Update: Apps only need 12 Testers now instead ... https://www.reddit.com/r/FlutterDev/comments/1hbz88e/google_play_policy_update_apps_only_need_12/
+[6] Internal testing | Google Play Console https://play.google.com/console/about/internal-testing
+[7] App review process and requirements for the Google Workspace ... https://developers.google.com/workspace/marketplace/about-app-review
+[8] Prepare your app for review - Play Console Help https://support.google.com/googleplay/android-developer/answer/9859455?hl=en
+

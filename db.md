@@ -9,6 +9,7 @@ User profile information and settings.
 
 **Columns:**
 - `id` (UUID, PRIMARY KEY, NOT NULL, DEFAULT: `auth.uid()`) - User ID matching Supabase Auth user ID
+- `name` (TEXT, NULLABLE) - User display name
 - `email` (TEXT, NOT NULL) - User's email address
 - `phone` (TEXT, NULLABLE) - User's phone number
 - `address` (TEXT, NULLABLE) - Street address
@@ -38,21 +39,6 @@ User profile information and settings.
 - RLS is enabled
 - The `id` column defaults to `auth.uid()` ensuring it matches the authenticated user's ID
 - User document is created automatically on first sign-in via `createSupabaseUserDocument()`
-
----
-
-### `feature_flags`
-Feature flags for controlling application behavior.
-
-**Columns:**
-- (Structure inferred from code usage - exact schema not in migrations)
-- Used by `FeatureFlags.initialize()` to fetch flags from Supabase
-- Flags include: `subscriptions_enabled`, `subscription_check_enabled`, `subscription_required_screen_enabled`, `store_redirect_enabled`
-
-**Notes:**
-- Referenced in `lib/services/feature_flag_service.dart`
-- Falls back to defaults if Supabase is unreachable
-- No RLS policies documented (may be public read or service_role only)
 
 ---
 

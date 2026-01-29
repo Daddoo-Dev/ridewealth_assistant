@@ -107,10 +107,10 @@ class ExportScreenState extends State<ExportScreen> {
 
       print('Generating export data...');
       final exportData = generateExportData(expenses, income, mileage);
-      print('Export data generated: ${exportData.toString()}');
+      print('Export data generated: ${exportData.length} rows');
 
       print('Opening CSV...');
-      await openCsv(exportData, 'export_data.csv');
+      await openCsvRows(exportData, 'export_data.csv');
       print('CSV process completed');
     } catch (err) {
       print('Error during export: $err');
@@ -219,22 +219,95 @@ class ExportScreenState extends State<ExportScreen> {
     }
   }
 
-  List<Map<String, dynamic>> generateExportData(
+  // List of all expense categories
+  static const List<String> expenseCategories = [
+    "Advertising",
+    "Car and truck expenses",
+    "Commissions and fees",
+    "Contract labor",
+    "Depletion",
+    "Depreciation and section 179 expense",
+    "Employee benefit programs",
+    "Insurance (other than health)",
+    "Interest (Other)",
+    "Mortgage",
+    "Legal and professional services",
+    "Office expense",
+    "Pension and profit-sharing plans",
+    "Rent or lease (Vehicles, machinery, equipment)",
+    "Rent or lease (Other business property)",
+    "Repairs and maintenance",
+    "Supplies",
+    "Taxes and licenses",
+    "Travel",
+    "Meals",
+    "Utilities",
+    "Wages",
+    "Estimated Tax Payment",
+    "Other expenses"
+  ];
+
+  List<List<dynamic>> generateExportData(
       List<Map<String, dynamic>> expenses,
       List<Map<String, dynamic>> income,
       List<Map<String, dynamic>> mileage) {
-    double totalIncome = income.fold(0, (total, item) => total + (item['amount'] ?? 0));
-    double totalExpenses = expenses.fold(0, (total, item) => total + (item['amount'] ?? 0));
+    double totalIncome = income.fold(0.0, (total, item) => total + ((item['amount'] ?? 0) as num).toDouble());
+    double totalExpenses = expenses.fold(0.0, (total, item) => total + ((item['amount'] ?? 0) as num).toDouble());
     double mileageDeduction = _calculateMileageDeduction(mileage);
+    double netIncome = totalIncome - totalExpenses - mileageDeduction;
 
-    return [
-      {
-        'Total Income': totalIncome,
-        'Total Expenses': totalExpenses,
-        'Total Mileage Deduction': mileageDeduction,
-        'Net Income': totalIncome - totalExpenses - mileageDeduction,
+    // Calculate totals by category
+    Map<String, double> categoryTotals = {};
+    double estimatedTaxPaymentIRS = 0.0;
+    double estimatedTaxPaymentState = 0.0;
+    
+    for (var category in expenseCategories) {
+      categoryTotals[category] = 0.0;
+    }
+    
+    for (var expense in expenses) {
+      String category = expense['category'] ?? 'Other expenses';
+      double amount = ((expense['amount'] ?? 0) as num).toDouble();
+      
+      if (category == 'Estimated Tax Payment') {
+        // Try to determine if it's IRS or State based on description
+        String description = (expense['description'] ?? '').toString().toLowerCase();
+        if (description.contains('state') || description.contains('state tax')) {
+          estimatedTaxPaymentState += amount;
+        } else {
+          // Default to IRS if not clearly marked as state
+          estimatedTaxPaymentIRS += amount;
+        }
+      } else {
+        categoryTotals[category] = (categoryTotals[category] ?? 0.0) + amount;
       }
-    ];
+    }
+
+    // Build CSV rows
+    List<List<dynamic>> rows = [];
+    
+    // Summary section
+    rows.add(['Total Income', totalIncome.toStringAsFixed(2)]);
+    rows.add(['Total Expenses', totalExpenses.toStringAsFixed(2)]);
+    rows.add(['Total Mileage Deduction', mileageDeduction.toStringAsFixed(2)]);
+    rows.add(['Net Income', netIncome.toStringAsFixed(2)]);
+    rows.add([]); // Empty row for spacing
+    
+    // Expense Categories section
+    rows.add(['Expense Categories']);
+    for (var category in expenseCategories) {
+      if (category != 'Estimated Tax Payment') {
+        double total = categoryTotals[category] ?? 0.0;
+        rows.add([category, total.toStringAsFixed(2)]);
+      }
+    }
+    rows.add([]); // Empty row for spacing
+    
+    // Estimated Payments section
+    rows.add(['Estimated Payments to IRS', estimatedTaxPaymentIRS.toStringAsFixed(2)]);
+    rows.add(['Estimated Payments to State', estimatedTaxPaymentState.toStringAsFixed(2)]);
+    
+    return rows;
   }
 
   double _calculateMileageDeduction(List<Map<String, dynamic>> mileage) {
@@ -258,21 +331,15 @@ class ExportScreenState extends State<ExportScreen> {
         .toList();
   }
 
-  Future<void> openCsv(List<Map<String, dynamic>> data, String filename) async {
-    print('Starting openCsv...');
-    if (data.isEmpty) {
+  Future<void> openCsvRows(List<List<dynamic>> rows, String filename) async {
+    print('Starting openCsvRows...');
+    if (rows.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No data to export')),
       );
       return;
     }
-
-    List<List<dynamic>> rows = [
-      data.first.keys.toList(),
-      ...data.map((item) => item.values.map((v) => v ?? 0).toList())
-    ];
-    print('Rows prepared: $rows');
 
     String csv = const ListToCsvConverter().convert(rows);
     print('CSV converted: $csv');
@@ -321,7 +388,26 @@ class ExportScreenState extends State<ExportScreen> {
         );
       }
     }
-    print('openCsv completed');
+    print('openCsvRows completed');
+  }
+
+  Future<void> openCsv(List<Map<String, dynamic>> data, String filename) async {
+    print('Starting openCsv...');
+    if (data.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No data to export')),
+      );
+      return;
+    }
+
+    List<List<dynamic>> rows = [
+      data.first.keys.toList(),
+      ...data.map((item) => item.values.map((v) => v ?? 0).toList())
+    ];
+    print('Rows prepared: $rows');
+
+    await openCsvRows(rows, filename);
   }
 
   Future<Directory> _getDirectory() async {

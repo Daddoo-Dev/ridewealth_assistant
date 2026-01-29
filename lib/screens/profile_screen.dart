@@ -10,6 +10,7 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
@@ -21,6 +22,18 @@ class ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _zipController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserProfile() async {
@@ -35,7 +48,8 @@ class ProfileScreenState extends State<ProfileScreen> {
 
         var data = response;
         setState(() {
-          _emailController.text = data['email'] ?? '';
+          _nameController.text = data['name'] ?? '';
+          _emailController.text = data['email'] ?? user.email ?? '';
           _phoneController.text = data['phone'] ?? '';
 
           // Parse address
@@ -72,7 +86,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               .from('users')
               .upsert({
             'id': user.id,
-            'email': _emailController.text,
+            'name': _nameController.text.isEmpty ? null : _nameController.text,
             'phone': _phoneController.text,
             'address': fullAddress,
             'city': _cityController.text,
@@ -107,10 +121,17 @@ class ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                value!.isEmpty ? 'Please enter your email' : null,
+                enabled: false,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
               ),
               SizedBox(height: 16),
               TextFormField(
