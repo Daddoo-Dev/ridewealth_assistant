@@ -17,10 +17,7 @@
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
     "supabase": "^2.30.4",
-    "tar": "^7.5.4"
-  },
-  "overrides": {
-    "tar": "^7.5.4"
+    "tar": "^7.5.6"
   },
   "devDependencies": {
     "playwright": "^1.48.0"
