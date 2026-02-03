@@ -21,15 +21,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserProfile() async {
     if (!mounted) return;
-    setState(() {
-      _loading = false;
-    });
+    try {
+      final userId = supabase.Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final res = await supabase.Supabase.instance.client
+            .from('users')
+            .select('display_name')
+            .eq('id', userId)
+            .maybeSingle();
+        if (mounted && res != null && res['display_name'] != null) {
+          setState(() => _userDisplayName = res['display_name'] as String);
+        }
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthState>(context).user;
-    
+
     // Determine what to display
     String displayText = 'User';
     if (_loading) {

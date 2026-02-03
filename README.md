@@ -160,6 +160,20 @@ flutter build ipa
 flutter build appbundle
 ```
 
+### Codemagic / CI (Android release)
+
+The app bakes Supabase and Sentry config at build time via `--dart-define`. Set these **environment variables** in Codemagic (or your CI), then pass them into the build:
+
+- `SUPABASE_URL` – Supabase project URL
+- `SUPABASE_ANON_PUBLIC` – Supabase anon/public key
+- `SENTRY_DSN` – Sentry DSN (optional; omit or leave empty to disable Sentry)
+
+**Android build arguments** (single line):
+
+```bash
+--release --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_PUBLIC="$SUPABASE_ANON_PUBLIC" --dart-define=SENTRY_DSN="$SENTRY_DSN"
+```
+
 ## License
 
 Private - All rights reserved

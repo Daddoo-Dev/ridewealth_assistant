@@ -280,6 +280,7 @@ class AuthScreenState extends State<AuthScreen> {
       }
     } catch (e, stack) {
       if (!mounted) return;
+      Sentry.captureException(e, stackTrace: stack);
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text(ErrorMessages.userFriendlyAuthMessage(e))),
       );
@@ -450,6 +451,7 @@ class AuthState extends ChangeNotifier {
         notifyListeners();
       } catch (e, stack) {
         print('Auth state change error: $e');
+        Sentry.captureException(e, stackTrace: stack);
       }
       print('=== End Auth State Change ===');
     });
@@ -467,6 +469,7 @@ class AuthState extends ChangeNotifier {
       notifyListeners();
     } catch (e, stack) {
       print('Sign out error in AuthState: $e');
+      Sentry.captureException(e, stackTrace: stack);
       rethrow;
     }
   }

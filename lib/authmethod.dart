@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'revenuecat_manager.dart';
 
 final supabase = Supabase.instance.client;
@@ -19,6 +20,7 @@ Future<void> createSupabaseUserDocument(User user) async {
       });
     } catch (insertError, insertStack) {
       print('Error creating user document: $insertError');
+      Sentry.captureException(insertError, stackTrace: insertStack);
       rethrow;
     }
   }
@@ -37,6 +39,7 @@ Future<AuthResponse?> signInWithEmailAndPassword(
     return response;
   } catch (e, stack) {
     print('Email/password sign in error: $e');
+    Sentry.captureException(e, stackTrace: stack);
     rethrow;
   }
 }
@@ -54,6 +57,7 @@ Future<AuthResponse?> signUpWithEmailAndPassword(
     return response;
   } catch (e, stack) {
     print('Email/password sign up error: $e');
+    Sentry.captureException(e, stackTrace: stack);
     rethrow;
   }
 }
@@ -63,6 +67,7 @@ Future<void> signOut() async {
     await supabase.auth.signOut();
   } catch (e, stack) {
     print('Sign out error: $e');
+    Sentry.captureException(e, stackTrace: stack);
     rethrow;
   }
 }
