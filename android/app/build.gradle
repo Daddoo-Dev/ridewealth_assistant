@@ -49,8 +49,6 @@ android {
         applicationId = "com.ridewealthassistant.app"
         minSdkVersion 21
         targetSdk = flutter.targetSdkVersion
-        versionCode = 21
-        versionName = "1.0.19"
     }
 }
 
