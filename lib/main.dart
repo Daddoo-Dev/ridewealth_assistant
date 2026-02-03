@@ -8,6 +8,7 @@ import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 
 import 'screens/main_screen.dart';
+import 'screens/web_signin_animation.dart';
 import 'environment.dart';
 import 'subscription_required.dart';
 import 'error_messages.dart';
@@ -304,6 +305,10 @@ class AuthScreenState extends State<AuthScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (kIsWeb) ...[
+                    WebSigninAnimation(height: 200),
+                    SizedBox(height: 24),
+                  ],
                   TextFormField(
                     key: const Key('auth_email_field'),
                     controller: _emailController,

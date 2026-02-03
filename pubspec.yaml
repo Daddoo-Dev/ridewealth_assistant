@@ -50,6 +50,8 @@ flutter:
     - assets/googlelogo.svg
     - assets/applelogo.svg
     - RWAlogo.png
+    - rwacar.png
+    - dollarsign.png
 
 flutter_launcher_icons:
   android: true
