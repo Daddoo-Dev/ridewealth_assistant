@@ -22,8 +22,12 @@ class _WebSigninAnimationState extends State<WebSigninAnimation>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: _duration)
-      ..forward();
+    _controller = AnimationController(vsync: this, duration: _duration);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (!mounted) return;
+      _controller.forward();
+    });
   }
 
   @override
