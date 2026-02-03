@@ -18,4 +18,9 @@ class Environment {
   static String get supabaseKey {
     return _anonPublic != '' ? _anonPublic : _key;
   }
+
+  static const String sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue: '',
+  );
 }

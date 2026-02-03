@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
 import 'authmethod.dart';
@@ -18,52 +19,56 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  try {
-    // Initialize Supabase first
-    await Supabase.initialize(
-      url: Environment.supabaseUrl,
-      anonKey: Environment.supabaseKey,
-      authOptions: const FlutterAuthClientOptions(
-        authFlowType: AuthFlowType.pkce,
-      ),
-    );
+  await SentryFlutter.init(
+    (options) {
+      options.dsn =
+          Environment.sentryDsn.isNotEmpty ? Environment.sentryDsn : null;
+      // Only capture app-layer errors (Dart/Flutter), not native OS crashes (e.g. OOM, device kills)
+      options.autoInitializeNativeSdk = false;
+    },
+    appRunner: () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      try {
+        await Supabase.initialize(
+          url: Environment.supabaseUrl,
+          anonKey: Environment.supabaseKey,
+          authOptions: const FlutterAuthClientOptions(
+            authFlowType: AuthFlowType.pkce,
+          ),
+        );
 
-    // Check for existing session and get user ID for RevenueCat
-    final currentSession = Supabase.instance.client.auth.currentSession;
-    final initialUserId = currentSession?.user.id;
+        final currentSession = Supabase.instance.client.auth.currentSession;
+        final initialUserId = currentSession?.user.id;
 
-    // Initialize RevenueCat with initial user ID if available
-    // The initialize() method already calls setRevenueCatUser() internally
-    await RevenueCatManager.initialize(initialUserId: initialUserId);
+        await RevenueCatManager.initialize(initialUserId: initialUserId);
 
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
 
-    runApp(MyApp());
-  } catch (e, stack) {
-    debugPrint('Startup error: $e');
-    debugPrint('Stack: $stack');
-
-    debugPrint('Startup error: $e');
-    debugPrint('Stack: $stack');
-    runApp(MaterialApp(
-      theme: AppThemes.lightTheme,
-      darkTheme: AppThemes.darkTheme,
-      home: Scaffold(
-        body: Center(
-          child: Builder(
-            builder: (context) => Text(
-              'Startup error:\n\nError: $e\n\nStack: $stack',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+        runApp(SentryWidget(child: MyApp()));
+      } catch (e, stack) {
+        debugPrint('Startup error: $e');
+        debugPrint('Stack: $stack');
+        await Sentry.captureException(e, stackTrace: stack);
+        runApp(MaterialApp(
+          theme: AppThemes.lightTheme,
+          darkTheme: AppThemes.darkTheme,
+          home: Scaffold(
+            body: Center(
+              child: Builder(
+                builder: (context) => Text(
+                  'Startup error:\n\nError: $e\n\nStack: $stack',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    ));
-  }
+        ));
+      }
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
