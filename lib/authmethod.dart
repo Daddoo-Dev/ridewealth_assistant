@@ -6,12 +6,8 @@ final supabase = Supabase.instance.client;
 Future<void> createSupabaseUserDocument(User user) async {
   try {
     // Try to get existing user
-    await supabase
-        .from('users')
-        .select()
-        .eq('id', user.id)
-        .single();
-    
+    await supabase.from('users').select().eq('id', user.id).single();
+
     // User exists, no need to update anything
   } catch (e) {
     // User doesn't exist, create new user
@@ -28,9 +24,11 @@ Future<void> createSupabaseUserDocument(User user) async {
   }
 }
 
-Future<AuthResponse?> signInWithEmailAndPassword(String email, String password) async {
+Future<AuthResponse?> signInWithEmailAndPassword(
+    String email, String password) async {
   try {
-    final response = await supabase.auth.signInWithPassword(email: email, password: password);
+    final response = await supabase.auth
+        .signInWithPassword(email: email, password: password);
     if (response.user != null) {
       await createSupabaseUserDocument(response.user!);
       // Log user into RevenueCat
@@ -39,13 +37,15 @@ Future<AuthResponse?> signInWithEmailAndPassword(String email, String password) 
     return response;
   } catch (e, stack) {
     print('Email/password sign in error: $e');
-    return null;
+    rethrow;
   }
 }
 
-Future<AuthResponse?> signUpWithEmailAndPassword(String email, String password) async {
+Future<AuthResponse?> signUpWithEmailAndPassword(
+    String email, String password) async {
   try {
-    final response = await supabase.auth.signUp(email: email, password: password);
+    final response =
+        await supabase.auth.signUp(email: email, password: password);
     if (response.user != null) {
       await createSupabaseUserDocument(response.user!);
       // Log user into RevenueCat
@@ -54,7 +54,7 @@ Future<AuthResponse?> signUpWithEmailAndPassword(String email, String password) 
     return response;
   } catch (e, stack) {
     print('Email/password sign up error: $e');
-    return null;
+    rethrow;
   }
 }
 

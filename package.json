@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:oauth": "node test/test_oauth.js"
+    "test:oauth": "node test/test_oauth.js",
+    "test:integration": "node run_integration_test.js"
   },
   "keywords": [],
   "author": "",

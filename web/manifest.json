@@ -1,11 +1,11 @@
 {
-    "name": "ridewealth_assistant",
-    "short_name": "ridewealth_assistant",
+    "name": "Ridewealth Assistant",
+    "short_name": "Ridewealth Assistant",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A financial assistant for rideshare and gig drivers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

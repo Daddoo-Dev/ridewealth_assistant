@@ -17,9 +17,12 @@ class SubscriptionRequiredScreen extends StatefulWidget {
   });
 
   @override
-  State<SubscriptionRequiredScreen> createState() => _SubscriptionRequiredScreenState();
+  State<SubscriptionRequiredScreen> createState() =>
+      _SubscriptionRequiredScreenState();
 }
-class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen> {
+
+class _SubscriptionRequiredScreenState
+    extends State<SubscriptionRequiredScreen> {
   bool _loading = false;
   String? _error;
   List<ProductDetails> _products = [];
@@ -29,25 +32,26 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
   void initState() {
     super.initState();
     if (!kIsWeb && widget.iapService != null) {
-      _iapService = Platform.isIOS ?
-      widget.iapService as AppleIAPService :
-      widget.iapService as GoogleIAPService;
+      _iapService = Platform.isIOS
+          ? widget.iapService as AppleIAPService
+          : widget.iapService as GoogleIAPService;
       _loadProducts();
     }
   }
 
   Future<void> _loadProducts() async {
     if (!mounted) return;
-    
+
     if (kIsWeb || widget.iapService == null) {
       // On web, subscriptions are handled via RevenueCat web
       setState(() {
         _loading = false;
-        _error = 'Web subscriptions are handled through RevenueCat. Please check your subscription status.';
+        _error =
+            'Web subscriptions are handled through RevenueCat. Please check your subscription status.';
       });
       return;
     }
-    
+
     setState(() {
       _loading = true;
       _error = null;
@@ -56,14 +60,14 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
     try {
       final products = await _iapService.loadProducts();
       if (!mounted) return;
-      
+
       setState(() {
         _products = products;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -73,12 +77,12 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
 
   Future<void> _restorePurchases() async {
     if (!mounted) return;
-    
+
     if (kIsWeb || widget.iapService == null) {
       // On web, restore is handled via RevenueCat
       return;
     }
-    
+
     setState(() => _loading = true);
     try {
       await _iapService.restorePurchases();
@@ -95,15 +99,16 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
 
   Future<void> _subscribe(ProductDetails product) async {
     if (!mounted) return;
-    
+
     if (kIsWeb || widget.iapService == null) {
       // On web, subscriptions are handled via RevenueCat
       setState(() {
-        _error = 'Web subscriptions are handled through RevenueCat. Please check your subscription status.';
+        _error =
+            'Web subscriptions are handled through RevenueCat. Please check your subscription status.';
       });
       return;
     }
-    
+
     setState(() {
       _loading = true;
       _error = null;
@@ -132,11 +137,12 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
       appBar: AppBar(
         title: const Text('Premium Features'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.restore),
-            onPressed: _loading ? null : _restorePurchases,
-            tooltip: 'Restore Purchases',
-          ),
+          if (!kIsWeb)
+            IconButton(
+              icon: const Icon(Icons.restore),
+              onPressed: _loading ? null : _restorePurchases,
+              tooltip: 'Restore Purchases',
+            ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _logout(context),
@@ -144,50 +150,61 @@ class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen>
           ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
+      body: kIsWeb
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _error!,
-              style: const TextStyle(color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadProducts,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      )
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Choose Your Plan',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  'A subscription is required to continue. Please sign in on our mobile app to subscribe.',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ..._buildSubscriptionCards(),
-            const SizedBox(height: 24),
-            const Text(
-              'Subscription automatically renews. Cancel anytime.',
-              style: TextStyle(color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+            )
+          : _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _error!,
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadProducts,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Choose Your Plan',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ..._buildSubscriptionCards(),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Subscription automatically renews. Cancel anytime.',
+                            style: TextStyle(color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
     );
   }
 

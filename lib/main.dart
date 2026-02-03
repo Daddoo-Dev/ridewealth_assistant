@@ -10,6 +10,7 @@ import 'revenuecat_manager.dart';
 import 'screens/main_screen.dart';
 import 'environment.dart';
 import 'subscription_required.dart';
+import 'error_messages.dart';
 import 'apple_iap_service.dart';
 import 'google_iap_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -39,12 +40,12 @@ void main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    
+
     runApp(MyApp());
   } catch (e, stack) {
     debugPrint('Startup error: $e');
     debugPrint('Stack: $stack');
-    
+
     debugPrint('Startup error: $e');
     debugPrint('Stack: $stack');
     runApp(MaterialApp(
@@ -110,9 +111,9 @@ class AuthWrapperState extends State<AuthWrapper> {
                   ),
                 );
               }
-              
+
               final hasSubscription = snapshot.data ?? false;
-              
+
               if (hasSubscription) {
                 return MainScreen();
               } else {
@@ -124,7 +125,8 @@ class AuthWrapperState extends State<AuthWrapper> {
                   );
                 } else {
                   return SubscriptionRequiredScreen(
-                    iapService: Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
+                    iapService:
+                        Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
                   );
                 }
               }
@@ -142,7 +144,7 @@ class AuthWrapperState extends State<AuthWrapper> {
       // Check if user has active subscription or trial
       final isSubscribed = await RevenueCatManager.isSubscribed();
       final trialStatus = await RevenueCatManager.getTrialStatus();
-      
+
       // Allow access if subscribed OR in trial
       return isSubscribed || (trialStatus['isInTrial'] == true);
     } catch (e) {
@@ -174,7 +176,7 @@ class AuthScreenState extends State<AuthScreen> {
 
   void _showPasswordResetDialog(BuildContext context) {
     final emailController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -182,7 +184,8 @@ class AuthScreenState extends State<AuthScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Enter your email address and we\'ll send you a password reset link.'),
+            Text(
+                'Enter your email address and we\'ll send you a password reset link.'),
             SizedBox(height: 16),
             TextField(
               controller: emailController,
@@ -208,16 +211,18 @@ class AuthScreenState extends State<AuthScreen> {
                 );
                 return;
               }
-              
+
               try {
                 await Supabase.instance.client.auth.resetPasswordForEmail(
                   emailController.text.trim(),
                 );
-                
+
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Password reset email sent! Check your inbox.')),
+                  SnackBar(
+                      content:
+                          Text('Password reset email sent! Check your inbox.')),
                 );
               } catch (e) {
                 if (!context.mounted) return;
@@ -241,7 +246,8 @@ class AuthScreenState extends State<AuthScreen> {
 
     try {
       AuthResponse? response;
-      if (_isSignUp) {
+      final doSignUp = _isSignUp && !kIsWeb; // Web is sign-in only
+      if (doSignUp) {
         response = await signUpWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text,
@@ -260,16 +266,16 @@ class AuthScreenState extends State<AuthScreen> {
       } else {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text(_isSignUp 
-              ? 'Failed to create account. Please try again.'
-              : 'Invalid email or password. Please try again.'),
+            content: Text(doSignUp
+                ? 'Failed to create account. Please try again.'
+                : 'Invalid email or password. Please try again.'),
           ),
         );
       }
     } catch (e, stack) {
       if (!mounted) return;
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again.')),
+        SnackBar(content: Text(ErrorMessages.userFriendlyAuthMessage(e))),
       );
     } finally {
       if (mounted) {
@@ -277,11 +283,17 @@ class AuthScreenState extends State<AuthScreen> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isSignUp ? 'Sign Up' : 'Sign In')),
+      appBar: AppBar(
+        title: Text(
+          _isSignUp
+              ? 'Ridewealth Assistant - Sign up'
+              : 'Ridewealth Assistant - Sign in',
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -293,6 +305,7 @@ class AuthScreenState extends State<AuthScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextFormField(
+                    key: const Key('auth_email_field'),
                     controller: _emailController,
                     decoration: AppThemes.inputDecoration.copyWith(
                       labelText: 'Email',
@@ -313,6 +326,7 @@ class AuthScreenState extends State<AuthScreen> {
                   ),
                   SizedBox(height: 16),
                   TextFormField(
+                    key: const Key('auth_password_field'),
                     controller: _passwordController,
                     decoration: AppThemes.inputDecoration.copyWith(
                       labelText: 'Password',
@@ -332,7 +346,9 @@ class AuthScreenState extends State<AuthScreen> {
                   ),
                   SizedBox(height: 8),
                   TextButton(
-                    onPressed: _isLoading ? null : () => _showPasswordResetDialog(context),
+                    onPressed: _isLoading
+                        ? null
+                        : () => _showPasswordResetDialog(context),
                     child: Text(
                       'Forgot Password?',
                       style: TextStyle(
@@ -344,28 +360,32 @@ class AuthScreenState extends State<AuthScreen> {
                   SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _handleSubmit,
-                    child: _isLoading 
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isSignUp ? 'Sign Up' : 'Sign In'),
+                    child: _isLoading
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_isSignUp ? 'Sign Up' : 'Sign In'),
                   ),
-                  SizedBox(height: 16),
-                  TextButton(
-                    onPressed: _isLoading ? null : () {
-                      setState(() {
-                        _isSignUp = !_isSignUp;
-                        _passwordController.clear();
-                      });
-                    },
-                    child: Text(
-                      _isSignUp 
-                        ? 'Already have an account? Sign In'
-                        : 'Don\'t have an account? Sign Up',
+                  if (!kIsWeb) ...[
+                    SizedBox(height: 16),
+                    TextButton(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() {
+                                _isSignUp = !_isSignUp;
+                                _passwordController.clear();
+                              });
+                            },
+                      child: Text(
+                        _isSignUp
+                            ? 'Already have an account? Sign In'
+                            : 'Don\'t have an account? Sign Up',
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -387,20 +407,20 @@ class AuthState extends ChangeNotifier {
 
   void _initializeAuth() {
     print('Initializing auth state listener...');
-    
+
     // Check if there's already an existing session and set RevenueCat user immediately
     final currentSession = Supabase.instance.client.auth.currentSession;
     if (currentSession?.user != null) {
       print('Found existing session, setting RevenueCat user immediately');
       RevenueCatManager.setRevenueCatUser(currentSession!.user.id);
     }
-    
+
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       print('=== Auth State Change ===');
       print('Event: ${data.event}');
       print('Session: ${data.session != null ? 'exists' : 'null'}');
       print('User: ${data.session?.user.id ?? 'null'}');
-      
+
       try {
         _user = data.session?.user;
         if (_user != null) {
@@ -408,9 +428,10 @@ class AuthState extends ChangeNotifier {
           await createSupabaseUserDocument(_user!);
           // Sync user with RevenueCat
           await RevenueCatManager.setRevenueCatUser(_user!.id);
-          
+
           // Debug: Get current RevenueCat user ID
-          final revenueCatUserId = await RevenueCatManager.getCurrentRevenueCatUserId();
+          final revenueCatUserId =
+              await RevenueCatManager.getCurrentRevenueCatUserId();
           print('Supabase user ID: ${_user!.id}');
           print('RevenueCat user ID: $revenueCatUserId');
         } else {
@@ -440,7 +461,6 @@ class AuthState extends ChangeNotifier {
     }
   }
 }
-
 
 /**
  * St Michael the Archangel, pray for us

@@ -104,7 +104,8 @@ class AppThemes {
     ),
     // AppBar with distinct elevation-based color (15% lighter)
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF404040), // Surface color (elevation 1) - 15% lighter
+      backgroundColor:
+          const Color(0xFF404040), // Surface color (elevation 1) - 15% lighter
       elevation: 0,
       centerTitle: true,
       titleTextStyle: titleLarge.copyWith(color: Colors.white),
@@ -113,7 +114,8 @@ class AppThemes {
     ),
     // NavigationBar with distinct surface color (elevation 2 - lighter than AppBar, 15% lighter)
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: const Color(0xFF454545), // Lighter surface color for contrast - 15% lighter
+      backgroundColor: const Color(
+          0xFF454545), // Lighter surface color for contrast - 15% lighter
       indicatorColor: accentColor.withOpacity(0.2),
       labelTextStyle: WidgetStateProperty.all(
         bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white70),
@@ -153,7 +155,7 @@ class AppThemes {
   static AppBar buildAppBar(BuildContext context, String title) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AppBar(
       title: Text(title),
       actions: [
