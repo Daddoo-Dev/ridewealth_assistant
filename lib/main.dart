@@ -133,6 +133,7 @@ class AuthWrapperState extends State<AuthWrapper> {
                   return SubscriptionRequiredScreen(
                     iapService:
                         Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
+                    onSubscriptionMaybeChanged: () => setState(() {}),
                   );
                 }
               }
@@ -151,11 +152,25 @@ class AuthWrapperState extends State<AuthWrapper> {
       final isSubscribed = await RevenueCatManager.isSubscribed();
       final trialStatus = await RevenueCatManager.getTrialStatus();
 
-      // Allow access if subscribed OR in trial
-      return isSubscribed || (trialStatus['isInTrial'] == true);
+      if (isSubscribed || (trialStatus['isInTrial'] == true)) {
+        return true;
+      }
+
+      // Fallback: raw IAP may have updated Supabase before RevenueCat synced
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final res = await Supabase.instance.client
+            .from('users')
+            .select('subscription_status')
+            .eq('id', user.id)
+            .maybeSingle();
+        final status = res?['subscription_status'] as String?;
+        if (status == 'active') return true;
+      }
+
+      return false;
     } catch (e) {
       print('Error checking subscription status: $e');
-      // Default to requiring subscription on error
       return false;
     }
   }

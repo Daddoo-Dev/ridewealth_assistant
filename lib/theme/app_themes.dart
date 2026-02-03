@@ -74,7 +74,7 @@ class AppThemes {
       backgroundColor: Colors.white,
       indicatorColor: primaryColor.withOpacity(0.1),
       labelTextStyle: WidgetStateProperty.all(
-        bodyMedium.copyWith(fontWeight: FontWeight.bold),
+        bodyMedium.copyWith(fontWeight: FontWeight.bold, fontSize: 12),
       ),
       iconTheme: WidgetStateProperty.all(
         IconThemeData(color: primaryColor),
@@ -118,7 +118,8 @@ class AppThemes {
           0xFF454545), // Lighter surface color for contrast - 15% lighter
       indicatorColor: accentColor.withOpacity(0.2),
       labelTextStyle: WidgetStateProperty.all(
-        bodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white70),
+        bodyMedium.copyWith(
+            fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white70),
       ),
       iconTheme: WidgetStateProperty.all(
         IconThemeData(color: accentColor),

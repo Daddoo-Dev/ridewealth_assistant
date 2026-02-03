@@ -10,10 +10,12 @@ import 'dart:io' show Platform;
 
 class SubscriptionRequiredScreen extends StatefulWidget {
   final dynamic iapService;
+  final VoidCallback? onSubscriptionMaybeChanged;
 
   const SubscriptionRequiredScreen({
     super.key,
     this.iapService,
+    this.onSubscriptionMaybeChanged,
   });
 
   @override
@@ -115,7 +117,13 @@ class _SubscriptionRequiredScreenState
     });
 
     try {
-      await _iapService.purchaseProduct(product);
+      await _iapService.purchaseProduct(
+        product,
+        onPurchaseComplete: () {
+          if (!mounted) return;
+          widget.onSubscriptionMaybeChanged?.call();
+        },
+      );
       if (!mounted) return;
       setState(() => _loading = false);
     } catch (e) {

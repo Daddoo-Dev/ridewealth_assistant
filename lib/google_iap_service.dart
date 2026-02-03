@@ -17,11 +17,13 @@ class GoogleIAPService {
     }
 
     if (_iapInstance is InAppPurchaseAndroidPlatform) {
-      final androidAddition = _iapInstance.getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+      final androidAddition = _iapInstance
+          .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
       await androidAddition.queryPastPurchases();
     }
 
-    final Stream<List<PurchaseDetails>> purchaseUpdated = _iapInstance.purchaseStream;
+    final Stream<List<PurchaseDetails>> purchaseUpdated =
+        _iapInstance.purchaseStream;
     _subscription = purchaseUpdated.listen(
       _onPurchaseUpdate,
       onDone: () => _subscription?.cancel(),
@@ -31,7 +33,8 @@ class GoogleIAPService {
 
   Future<List<ProductDetails>> loadProducts() async {
     try {
-      final ProductDetailsResponse response = await _iapInstance.queryProductDetails({_annualSubId});
+      final ProductDetailsResponse response =
+          await _iapInstance.queryProductDetails({_annualSubId});
 
       if (response.error != null) {
         print('Google product query error: ${response.error}');
@@ -49,7 +52,14 @@ class GoogleIAPService {
     }
   }
 
-  Future<void> purchaseProduct(ProductDetails product) async {
+  void Function()? _onPurchaseComplete;
+
+  Future<void> purchaseProduct(
+    ProductDetails product, {
+    void Function()? onPurchaseComplete,
+  }) async {
+    _onPurchaseComplete = onPurchaseComplete;
+
     final user = supabase.auth.currentUser;
     final purchaseParam = PurchaseParam(
       productDetails: product,
@@ -57,12 +67,14 @@ class GoogleIAPService {
     );
 
     try {
-      final success = await _iapInstance.buyNonConsumable(purchaseParam: purchaseParam);
+      final success =
+          await _iapInstance.buyNonConsumable(purchaseParam: purchaseParam);
       if (!success) {
         throw Exception('Purchase flow failed to start');
       }
     } catch (e) {
       print('Error purchasing product: $e');
+      _onPurchaseComplete = null;
       rethrow;
     }
   }
@@ -96,6 +108,8 @@ class GoogleIAPService {
           if (purchase.pendingCompletePurchase) {
             await _iapInstance.completePurchase(purchase);
           }
+          _onPurchaseComplete?.call();
+          _onPurchaseComplete = null;
           return;
 
         case PurchaseStatus.canceled:
@@ -109,19 +123,17 @@ class GoogleIAPService {
   }
 
   Future<void> _updateSubscriptionStatus(
-      String userId,
-      String status,
-      ) async {
+    String userId,
+    String status,
+  ) async {
     try {
-      await supabase
-          .from('users')
-          .upsert({
-            'id': userId,
-            'subscription_status': status,
-            'subscription_platform': 'google',
-            'subscription_id': _annualSubId,
-            'last_updated': DateTime.now().toIso8601String(),
-          });
+      await supabase.from('users').upsert({
+        'id': userId,
+        'subscription_status': status,
+        'subscription_platform': 'google',
+        'subscription_id': _annualSubId,
+        'last_updated': DateTime.now().toIso8601String(),
+      });
     } catch (e) {
       print('Error updating subscription status: $e');
       rethrow;

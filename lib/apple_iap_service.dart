@@ -28,7 +28,8 @@ class AppleIAPService {
     );
 
     if (_iap is InAppPurchaseStoreKitPlatform) {
-      final iosPlatform = _iap.getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      final iosPlatform =
+          _iap.getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
       await iosPlatform.setDelegate(ApplePaymentDelegate());
     }
   }
@@ -52,7 +53,14 @@ class AppleIAPService {
     }
   }
 
-  Future<void> purchaseProduct(ProductDetails product) async {
+  void Function()? _onPurchaseComplete;
+
+  Future<void> purchaseProduct(
+    ProductDetails product, {
+    void Function()? onPurchaseComplete,
+  }) async {
+    _onPurchaseComplete = onPurchaseComplete;
+
     final user = supabase.auth.currentUser;
     final purchaseParam = PurchaseParam(
       productDetails: product,
@@ -66,6 +74,7 @@ class AppleIAPService {
       }
     } catch (e) {
       print('Error purchasing product: $e');
+      _onPurchaseComplete = null;
       rethrow;
     }
   }
@@ -116,6 +125,8 @@ class AppleIAPService {
           if (purchase.pendingCompletePurchase) {
             await _iap.completePurchase(purchase);
           }
+          _onPurchaseComplete?.call();
+          _onPurchaseComplete = null;
           return;
 
         case PurchaseStatus.canceled:
@@ -129,21 +140,20 @@ class AppleIAPService {
   }
 
   Future<void> _updateSubscriptionStatus(
-      String userId,
-      String status, [
-        DateTime? expiryDate,
-      ]) async {
+    String userId,
+    String status, [
+    DateTime? expiryDate,
+  ]) async {
     try {
-      await supabase
-          .from('users')
-          .upsert({
-            'id': userId,
-            'subscription_status': status,
-            'subscription_platform': 'apple',
-            'subscription_id': _productId,
-            if (expiryDate != null) 'subscription_expiry': expiryDate.toIso8601String(),
-            'last_updated': DateTime.now().toIso8601String(),
-          });
+      await supabase.from('users').upsert({
+        'id': userId,
+        'subscription_status': status,
+        'subscription_platform': 'apple',
+        'subscription_id': _productId,
+        if (expiryDate != null)
+          'subscription_expiry': expiryDate.toIso8601String(),
+        'last_updated': DateTime.now().toIso8601String(),
+      });
     } catch (e) {
       print('Error updating subscription status: $e');
       rethrow;
