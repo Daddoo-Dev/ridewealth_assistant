@@ -20,4 +20,9 @@ allprojects {
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.afterEvaluate {
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask).configureEach { task ->
+            task.compilerOptions.languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_8)
+        }
+    }
 }
