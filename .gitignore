@@ -74,3 +74,4 @@ uberdriver-*.json
 **/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+certificates/RWA02032027.mobileprovision
