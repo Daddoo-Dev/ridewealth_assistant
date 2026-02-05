@@ -182,13 +182,15 @@ class DeleteAccountButton extends StatelessWidget {
         return;
       }
 
-      // Delete user data from Supabase
-      await _deleteUserDataSupabase(supabaseUser.id);
+      // Call edge function to delete account (requires service role on server)
+      final response = await supabase.functions.invoke('delete_account');
       
-      // Delete the user account
-      await supabase.auth.admin.deleteUser(supabaseUser.id);
+      if (response.status != 200) {
+        final error = response.data?['error'] ?? 'Unknown error';
+        throw Exception(error);
+      }
 
-      // Sign out
+      // Sign out locally
       await supabase.auth.signOut();
 
       if (context.mounted) {
@@ -207,47 +209,6 @@ class DeleteAccountButton extends StatelessWidget {
       if (context.mounted) {
         _showError(context, 'Failed to delete account: $e');
       }
-    }
-  }
-
-  Future<void> _deleteUserDataSupabase(String userId) async {
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Delete from expenses table
-      await supabase
-          .from('expenses')
-          .delete()
-          .eq('user_id', userId);
-
-      // Delete from income table
-      await supabase
-          .from('income')
-          .delete()
-          .eq('user_id', userId);
-
-      // Delete from mileage table
-      await supabase
-          .from('mileage')
-          .delete()
-          .eq('user_id', userId);
-
-      // Delete from tax_estimates table
-      await supabase
-          .from('tax_estimates')
-          .delete()
-          .eq('user_id', userId);
-
-      // Delete from users table
-      await supabase
-          .from('users')
-          .delete()
-          .eq('id', userId);
-
-      print('Supabase user data deleted successfully');
-    } catch (e) {
-      print('Error deleting Supabase user data: $e');
-      // Continue with account deletion even if data deletion fails
     }
   }
 
