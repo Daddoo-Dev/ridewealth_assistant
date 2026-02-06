@@ -11,12 +11,9 @@ export PATH="$PWD/flutter/bin:$PATH"
 # Accept Flutter licenses
 flutter doctor --android-licenses || true
 
-# Get dependencies and build with environment variables
+# Get dependencies and build
 flutter pub get
-flutter build web \
-  --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-  --dart-define=SUPABASE_KEY="$SUPABASE_KEY" \
-  --dart-define=SENTRY_DSN="$SENTRY_DSN"
+flutter build web
 
 # Copy delete-account page to build output
 cp -r delete-account build/web/

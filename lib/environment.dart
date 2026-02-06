@@ -1,26 +1,6 @@
 class Environment {
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: '',
-  );
-  
-  // Support both SUPABASE_ANON_PUBLIC (local) and SUPABASE_KEY (CI)
-  static const String _anonPublic = String.fromEnvironment(
-    'SUPABASE_ANON_PUBLIC',
-    defaultValue: '',
-  );
-  static const String _key = String.fromEnvironment(
-    'SUPABASE_KEY',
-    defaultValue: '',
-  );
-  
-  // Use SUPABASE_ANON_PUBLIC if provided, otherwise fallback to SUPABASE_KEY
-  static String get supabaseKey {
-    return _anonPublic != '' ? _anonPublic : _key;
-  }
-
-  static const String sentryDsn = String.fromEnvironment(
-    'SENTRY_DSN',
-    defaultValue: '',
-  );
+  // Public values - security is enforced by Supabase RLS, not by hiding these
+  static const String supabaseUrl = 'https://ygreztutwejfiqyzdpnd.supabase.co';
+  static const String supabaseKey = 'sb_publishable_cLW1iQZTlC9CLP4HQ4-Heg_QyyyEZy0';
+  static const String sentryDsn = 'https://ef998c0a011679bc05ce2617525a8662@o4509657807060992.ingest.us.sentry.io/4509657808371712';
 }
