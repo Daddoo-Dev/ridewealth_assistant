@@ -323,19 +323,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               TextField(
                 controller: amountController,
                 decoration:
-                    AppThemes.inputDecoration.copyWith(labelText: 'Amount'),
+                    AppThemes.getInputDecoration(context).copyWith(labelText: 'Amount'),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
               SizedBox(height: 16),
               TextField(
                 controller: descriptionController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(labelText: 'Description'),
               ),
               SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(
                       labelText: 'Notes (Optional)',
                       hintText: 'Add additional notes',
@@ -376,7 +376,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: category.isEmpty ? null : category,
-                      decoration: AppThemes.inputDecoration.copyWith(labelText: 'Category'),
+                      decoration: AppThemes.getInputDecoration(context).copyWith(labelText: 'Category'),
                       isExpanded: true,
                       items: expenseCategories.map((String value) {
                         return DropdownMenuItem<String>(
@@ -411,7 +411,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(
                       labelText: 'Notes (Optional)',
                       hintText: 'Add additional notes',

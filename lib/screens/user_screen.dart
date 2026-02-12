@@ -201,7 +201,7 @@ class UserScreenState extends State<UserScreen> {
               _buildButton(
                 'Sign Out',
                 () => handleSignOut(context),
-                color: Theme.of(context).colorScheme.error,
+                color: Colors.red[700],
               ),
             ],
           ),

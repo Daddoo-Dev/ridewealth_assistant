@@ -3,8 +3,8 @@ description: A financial assistant for rideshare and gig drivers.
 
 publish_to: "none"
 
-version: 1.0.26+28
-homepage: http://www.ridewealthassistant.com
+version: 1.0.27+29
+homepage: https://www.ridewealthassistant.com
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

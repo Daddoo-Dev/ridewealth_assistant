@@ -325,7 +325,7 @@ class ExportScreenState extends State<ExportScreen> {
       'Date': DateFormat.yMd().format(entry['start_date']),
       'Start Mileage': entry['start_mileage'].toString(),
       'End Mileage': entry['end_mileage'].toString(),
-      'Total Daily Miles':
+      'Total Daily Miles/Km':
           (entry['end_mileage'] - entry['start_mileage']).toString()
     })
         .toList();

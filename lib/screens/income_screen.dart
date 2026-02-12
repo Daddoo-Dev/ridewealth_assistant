@@ -297,19 +297,19 @@ class _IncomeScreenState extends State<IncomeScreen> {
               TextField(
                 controller: amountController,
                 decoration:
-                    AppThemes.inputDecoration.copyWith(labelText: 'Amount'),
+                    AppThemes.getInputDecoration(context).copyWith(labelText: 'Amount'),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
               SizedBox(height: 12),
               TextField(
                 controller: descriptionController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(labelText: 'Description'),
               ),
               SizedBox(height: 12),
               TextField(
                 controller: notesController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(
                       labelText: 'Notes (Optional)',
                       hintText: 'Add additional notes',

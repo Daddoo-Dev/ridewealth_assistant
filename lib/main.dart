@@ -9,6 +9,7 @@ import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 
 import 'screens/main_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/web_signin_animation.dart';
 import 'environment.dart';
 import 'subscription_required.dart';
@@ -121,7 +122,7 @@ class AuthWrapperState extends State<AuthWrapper> {
               final hasSubscription = snapshot.data ?? false;
 
               if (hasSubscription) {
-                return MainScreen();
+                return _buildMainOrOnboarding();
               } else {
                 // Force subscription screen
                 // On web, IAP services aren't available - RevenueCat handles web subscriptions
@@ -142,6 +143,29 @@ class AuthWrapperState extends State<AuthWrapper> {
         } else {
           return AuthScreen();
         }
+      },
+    );
+  }
+
+  Widget _buildMainOrOnboarding() {
+    return FutureBuilder<bool>(
+      future: OnboardingScreen.hasSeenOnboarding(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final hasSeen = snapshot.data ?? false;
+
+        if (hasSeen) {
+          return MainScreen();
+        }
+
+        return OnboardingScreen(
+          onComplete: () => setState(() {}),
+        );
       },
     );
   }
@@ -210,7 +234,7 @@ class AuthScreenState extends State<AuthScreen> {
             SizedBox(height: 16),
             TextField(
               controller: emailController,
-              decoration: AppThemes.inputDecoration.copyWith(
+              decoration: AppThemes.getInputDecoration(context).copyWith(
                 labelText: 'Email',
                 hintText: 'your@email.com',
               ),
@@ -248,7 +272,7 @@ class AuthScreenState extends State<AuthScreen> {
               } catch (e) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
+                  SnackBar(content: Text(ErrorMessages.userFriendlyAuthMessage(e))),
                 );
               }
             },
@@ -333,7 +357,7 @@ class AuthScreenState extends State<AuthScreen> {
                   TextFormField(
                     key: const Key('auth_email_field'),
                     controller: _emailController,
-                    decoration: AppThemes.inputDecoration.copyWith(
+                    decoration: AppThemes.getInputDecoration(context).copyWith(
                       labelText: 'Email',
                       hintText: 'your@email.com',
                     ),
@@ -354,7 +378,7 @@ class AuthScreenState extends State<AuthScreen> {
                   TextFormField(
                     key: const Key('auth_password_field'),
                     controller: _passwordController,
-                    decoration: AppThemes.inputDecoration.copyWith(
+                    decoration: AppThemes.getInputDecoration(context).copyWith(
                       labelText: 'Password',
                       hintText: 'Enter your password',
                     ),

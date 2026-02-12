@@ -16,5 +16,14 @@ List<MileageRate> mileageRates = [
     endDate: DateTime(2024, 12, 31),
     rate: 0.67,
   ),
-  // Add more rates here as they change
+  MileageRate(
+    startDate: DateTime(2025, 1, 1),
+    endDate: DateTime(2025, 12, 31),
+    rate: 0.70,
+  ),
+  MileageRate(
+    startDate: DateTime(2026, 1, 1),
+    endDate: DateTime(2026, 12, 31),
+    rate: 0.73,
+  ),
 ];

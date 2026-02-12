@@ -1,39 +1,39 @@
 # Google Play Production Access Questionnaire – Ridewealth Assistant
 
-Character limit per answer: **300 characters**. Text answers within limit (Q2: 249, Q3: 287, Q4: 206, Q5: 278, Q7: 237, Q8: 247). Use when filling the form.
+Character limit per answer: **300 characters**. Answers below are within limit. Use when filling the form.
 
 ---
 
 ## Part 1: Tell us about your closed test
 
 **1. How easy did you find it to recruit testers?** *(Select from options)*  
-→ Select: **Easy**. Recruited via Play closed testing; invited rideshare/gig drivers and friends/family who fit the target profile.
+→ Select: **Easy**. Utilized a dedicated app testing service and engaged potential users through social media channels, ensuring a diverse group familiar with app functionality.
 
 **2. Engagement from testers**
-Testers used core features: mileage tracking, income/expense logging, and subscription flow. Usage aligned with production expectations—daily logging and occasional subscription purchase/restore. No notable differences expected for production users.
+Testers provided insightful feedback on user experience, identifying key areas for improvement including onboarding, UI design, dark mode readability, theme support, and legal compliance. Their active participation prompted updates and significantly enriched overall app usability.
 
 **3. Feedback summary and how you collected it**
-Testers confirmed features work; requested clearer paywall prompts and more visible “Restore purchases.” Some reported UI not refreshing after purchase; others noted nav label wrapping on small screens. Collected via Play Testers Community, direct messages/email, and Sentry for crashes.
+Testers highlighted the need for a dynamic walkthrough, improved dark mode text fields, system theme support, better signup error messages, and a privacy policy page. Feedback was gathered through surveys via Testers Community and direct communication.
 
 ---
 
 ## Part 2: Tell us about your app/game
 
 **4. Intended audience**
-Adults (18+) who work as independent contractors in rideshare and gig economy in the US—drivers and delivery workers who need income, expense, and mileage tracking for taxes and budgeting. Not for children.
+RideWealth Assistant is designed for rideshare and gig economy drivers worldwide seeking efficient financial management. It helps anyone who needs to track mileage, income, expenses, and estimate taxes for their independent contractor work.
 
 **5. How your app provides value to users** *(For apps)*
-Simplifies financial management for gig drivers: automatic mileage tracking, categorized income/expense logging, and tax estimates reduce record-keeping burden. Premium analytics help users understand earnings. No ads; clean, focused experience. CSV export for external records.
+Simplifies financial management for gig drivers: mileage tracking, categorized income/expense logging, and customizable tax estimates reduce record-keeping burden. CSV export for tax preparers. No ads; clean, focused experience with privacy policy and disclaimer built in.
 
 **6. Expected installs in first year** *(Select from range options)*  
-→ Select the range that includes **500–2,000** (e.g. 100–1,000 or 1,000–10,000 depending on available options). Organic growth, driver forums, social media; no major paid acquisition.
+→ Select: **10k – 100k**. Organic growth via driver forums, social media, and Play Store discovery. No major paid acquisition planned.
 
 ---
 
 ## Part 3: Tell us about your production readiness
 
 **7. What changes you made based on closed test**
-Added post-purchase refresh so the app re-checks entitlement and navigates off the paywall after purchase. Reduced bottom nav label font size so “Expenses” doesn’t wrap on small screens. Clarified paywall and “Restore purchases” wording.
+Added dynamic onboarding walkthrough for new users. Fixed dark mode text field readability. Added system theme auto-detection. Improved signup error messages with specific feedback. Added privacy policy within the app. Made mileage and tax features internationally friendly.
 
 **8. How you decided the app was ready for production**
-Closed testing validated auth, mileage tracking, income/expense logging, and subscription purchase/restore. Post-purchase refresh confirmed working. Sentry showed no critical crashes. Testers reported the app was stable and useful for their needs.
+After extensive testing and refinement based on user feedback, we resolved issues with onboarding, dark mode UI, error handling, and legal compliance. The app is stable with Sentry error tracking, enhanced interface, and a user-friendly experience ready for production.

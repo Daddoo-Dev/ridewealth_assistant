@@ -159,11 +159,11 @@ class MileageScreenState extends State<MileageScreen> {
     int totalMiles = endMileage - startMileage;
     if (totalMiles > 1000) {
       setState(() {
-        error = "Daily mileage over 1000 miles seems unreasonable. Please verify.";
+        error = "Daily mileage over 1000 miles/km seems unreasonable. Please verify.";
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Daily mileage over 1000 miles seems unreasonable.")),
+        SnackBar(content: Text("Daily mileage over 1000 miles/km seems unreasonable.")),
       );
       return;
     }
@@ -336,7 +336,7 @@ class MileageScreenState extends State<MileageScreen> {
               SizedBox(height: 16),
               TextField(
                 controller: startMileageController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(labelText: 'Start Mileage'),
                 keyboardType: TextInputType.number,
               ),
@@ -349,14 +349,14 @@ class MileageScreenState extends State<MileageScreen> {
               SizedBox(height: 8),
               TextField(
                 controller: endMileageController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(labelText: 'End Mileage'),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 8),
               TextField(
                 controller: notesController,
-                decoration: AppThemes.inputDecoration
+                decoration: AppThemes.getInputDecoration(context)
                     .copyWith(
                       labelText: 'Notes (Optional)',
                       hintText: 'Add notes about this trip',
@@ -438,15 +438,15 @@ class MileageScreenState extends State<MileageScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Start: ${mileage['start_mileage']} miles',
+                                        'Start: ${mileage['start_mileage']} miles/km',
                                         style: AppThemes.bodyMedium,
                                       ),
                                       Text(
-                                        'End: ${mileage['end_mileage']} miles',
+                                        'End: ${mileage['end_mileage']} miles/km',
                                         style: AppThemes.bodyMedium,
                                       ),
                                       Text(
-                                        'Total: ${mileage['end_mileage'] - mileage['start_mileage']} miles',
+                                        'Total: ${mileage['end_mileage'] - mileage['start_mileage']} miles/km',
                                         style: AppThemes.listTileAmount,
                                       ),
                                     ],

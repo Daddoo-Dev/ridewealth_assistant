@@ -251,7 +251,7 @@ class DeleteAccountButton extends StatelessWidget {
     final csvData = <List<dynamic>>[];
     
     // Add headers
-    csvData.add(['Start Date', 'End Date', 'Miles', 'Purpose', 'Notes']);
+    csvData.add(['Start Date', 'End Date', 'Miles/Km', 'Purpose', 'Notes']);
     
     // Add mileage data
     for (final mileageItem in mileage) {

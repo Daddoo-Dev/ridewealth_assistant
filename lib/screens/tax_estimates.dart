@@ -195,7 +195,7 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
   Widget _buildRateInputs() {
     final federalItems = List.generate(100, (index) => index + 1);
     final stateItems = List.generate(100, (index) => index + 1);
-    final mileageItems = List.generate(100, (index) => index + 1);
+    final mileageItems = List.generate(500, (index) => index + 1);
     return Column(
       children: [
         DropdownButtonFormField<int>(
@@ -249,13 +249,13 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
         DropdownButtonFormField<int>(
           value: mileageItems.contains(customMileageRateCents) ? customMileageRateCents : null,
           decoration: InputDecoration(
-            labelText: 'Custom Mileage Rate (cents)',
+            labelText: 'Mileage Rate (per unit)',
             border: OutlineInputBorder(),
           ),
           items: mileageItems.map((int value) {
             return DropdownMenuItem<int>(
               value: value,
-              child: Text('$value¢'),
+              child: Text('$value'),
             );
           }).toList(),
           onChanged: (int? newValue) {
@@ -460,7 +460,7 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
             SizedBox(height: 8),
             Text('Taxable Base: ${base.toStringAsFixed(2)}'),
             if (miles > 0)
-              Text('Mileage Deduction: $miles miles (${mileageDeduction.toStringAsFixed(2)})'),
+              Text('Mileage Deduction: $miles miles/km (${mileageDeduction.toStringAsFixed(2)})'),
             SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

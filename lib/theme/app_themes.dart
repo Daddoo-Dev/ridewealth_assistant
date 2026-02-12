@@ -44,18 +44,26 @@ class AppThemes {
     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   );
 
-  static InputDecoration get inputDecoration => InputDecoration(
-        filled: true,
-        fillColor: Colors.grey[200], // Light background for light theme
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primaryColor, width: 2.0),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      );
+  static InputDecoration getInputDecoration(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InputDecoration(
+      filled: true,
+      fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey[200],
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: isDark ? BorderSide(color: Colors.grey[700]!) : BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: isDark ? BorderSide(color: Colors.grey[700]!) : BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: primaryColor, width: 2.0),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -155,17 +163,15 @@ class AppThemes {
 
   static AppBar buildAppBar(BuildContext context, String title) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AppBar(
       title: Text(title),
       actions: [
         IconButton(
-          icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-          onPressed: () {
-            themeProvider.toggleTheme(isDarkMode);
-          },
-          tooltip: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+          icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+          onPressed: () => themeProvider.toggleTheme(context),
+          tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
         ),
       ],
     );
