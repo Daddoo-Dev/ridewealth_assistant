@@ -19,3 +19,4 @@ flutter build web
 cp -r delete-account build/web/
 cp -r support build/web/
 cp -r marketing build/web/
+cp -r terms build/web/

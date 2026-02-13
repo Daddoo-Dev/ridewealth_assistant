@@ -49,9 +49,10 @@ Future<AuthResponse?> signUpWithEmailAndPassword(
   try {
     final response =
         await supabase.auth.signUp(email: email, password: password);
-    if (response.user != null) {
+    // Only create user doc and set RevenueCat if we have a session
+    // (no session means email confirmation is required first)
+    if (response.user != null && response.session != null) {
       await createSupabaseUserDocument(response.user!);
-      // Log user into RevenueCat
       await RevenueCatManager.setRevenueCatUser(response.user!.id);
     }
     return response;

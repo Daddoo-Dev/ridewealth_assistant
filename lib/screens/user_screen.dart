@@ -51,7 +51,7 @@ class UserScreenState extends State<UserScreen> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    'Disclaimer',
+                    'Legal (Disclaimer, Privacy & Terms)',
                     style: TextStyle(
                       color: AppThemes.primaryColor,
                       decoration: TextDecoration.underline,
@@ -178,7 +178,7 @@ class UserScreenState extends State<UserScreen> {
               ),
               SizedBox(height: 12),
               _buildButton(
-                'Disclaimer',
+                'Legal',
                 () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => DisclaimerScreen()),

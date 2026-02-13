@@ -307,7 +307,17 @@ class AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
 
       if (response?.user != null) {
-        // Success - AuthState will handle navigation
+        if (doSignUp && response?.session == null) {
+          // Signup succeeded but email confirmation required
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text('Account created! Please check your email to confirm, then sign in.'),
+              duration: Duration(seconds: 5),
+            ),
+          );
+          setState(() => _isSignUp = false);
+        }
+        // Otherwise AuthState will handle navigation
       } else {
         scaffoldMessenger.showSnackBar(
           SnackBar(

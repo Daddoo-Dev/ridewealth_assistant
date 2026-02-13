@@ -13,7 +13,7 @@ class DisclaimerScreen extends StatelessWidget {
     final bodyStyle = TextStyle(fontSize: 16);
 
     return Scaffold(
-      appBar: AppThemes.buildAppBar(context, 'Disclaimer & Privacy'),
+      appBar: AppThemes.buildAppBar(context, 'Legal'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -204,6 +204,110 @@ class DisclaimerScreen extends StatelessWidget {
               'If you have questions about this Privacy Policy, please contact us:\n'
               '• Website: https://daddoodev.pro\n'
               '• Email: daddoodev@proton.me',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 32),
+            Divider(),
+            SizedBox(height: 32),
+            // Terms of Use
+            Text(
+              'Terms of Use',
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Last updated: February 12, 2026',
+              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+            ),
+            SizedBox(height: 16),
+            Text('1. Acceptance of Terms', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'By downloading, installing, or using RideWealth Assistant ("the App"), you agree to be bound by these Terms of Use. If you do not agree, do not use the App.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('2. Description of Service', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'RideWealth Assistant is a financial tracking tool designed to help rideshare and gig economy drivers log mileage, income, expenses, and estimate quarterly tax obligations. The App is provided for informational purposes only and does not constitute tax, legal, or financial advice.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('3. Subscriptions & Payments', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'RideWealth Assistant offers auto-renewable subscriptions:\n\n'
+              '• Monthly Subscription — billed monthly, renews automatically until cancelled.\n'
+              '• Annual Subscription — billed annually, renews automatically until cancelled.\n\n'
+              'Payment is charged to your Apple ID or Google Play account at confirmation of purchase. Your subscription automatically renews unless cancelled at least 24 hours before the end of the current billing period. You can manage and cancel subscriptions in your device\'s account settings.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('4. User Accounts', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'You must create an account to use the App. You are responsible for maintaining the confidentiality of your credentials and for all activity under your account. You agree to provide accurate, current information during registration.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('5. Acceptable Use', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'You agree not to:\n'
+              '• Use the App for any unlawful purpose\n'
+              '• Attempt to reverse-engineer, decompile, or tamper with the App\n'
+              '• Interfere with or disrupt the App\'s servers or networks\n'
+              '• Use the App to transmit harmful or malicious content',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('6. Disclaimer of Warranties', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'The App is provided "as is" and "as available" without warranties of any kind, express or implied. We do not warrant that the App will be uninterrupted, error-free, or that any defects will be corrected. Tax estimates and financial calculations are approximate and should not be relied upon as professional advice.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('7. Limitation of Liability', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'To the maximum extent permitted by law, Daddoo Dev and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the App, including but not limited to loss of data, revenue, or profits.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('8. Data & Privacy', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'Your use of the App is also governed by our Privacy Policy (above). Your data is stored securely via Supabase. You may request deletion of your account and all associated data at any time through the App.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('9. Intellectual Property', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'All content, trademarks, logos, and intellectual property displayed in the App are the property of Daddoo Dev. You may not reproduce, distribute, or create derivative works without prior written consent.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('10. Termination', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'We reserve the right to suspend or terminate your access to the App at any time, with or without cause, and with or without notice. Upon termination, your right to use the App ceases immediately.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('11. Changes to These Terms', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'We may update these Terms of Use from time to time. Changes will be posted within the App with an updated date. Continued use of the App after changes constitutes acceptance of the revised terms.',
+              style: bodyStyle,
+            ),
+            SizedBox(height: 16),
+            Text('12. Contact', style: subtitleStyle),
+            SizedBox(height: 8),
+            Text(
+              'For questions about these Terms of Use, contact us at daddoodev@proton.me.',
               style: bodyStyle,
             ),
             SizedBox(height: 32),
