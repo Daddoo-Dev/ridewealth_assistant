@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ridewealth Assistant - Financial Management for Gig Drivers</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .hero {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .hero img { width: 100px; height: 100px; border-radius: 20px; margin-bottom: 20px; }
+        .hero h1 { font-size: 32px; margin-bottom: 12px; }
+        .hero .tagline { font-size: 18px; color: #aaa; margin-bottom: 32px; }
+        .badges { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
+        .badges a img { height: 50px; }
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .feature-icon { font-size: 32px; margin-bottom: 12px; }
+        .feature h3 { font-size: 16px; margin-bottom: 8px; }
+        .feature p { font-size: 14px; color: #aaa; line-height: 1.5; }
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+        .section h2 { font-size: 20px; margin-bottom: 12px; color: #4CAF50; }
+        .section p, .section li { font-size: 15px; color: #ccc; line-height: 1.6; }
+        .section ul { padding-left: 20px; margin-top: 8px; }
+        .section li { margin-bottom: 6px; }
+        a { color: #4CAF50; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .footer { text-align: center; padding: 32px 0 16px; font-size: 13px; color: #666; }
+        .footer a { color: #888; margin: 0 8px; }
+        @media (max-width: 600px) {
+            .features { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <img src="../RWAlogo.png" alt="Ridewealth Assistant" onerror="this.style.display='none'">
+            <h1>Ridewealth Assistant</h1>
+            <p class="tagline">Financial management made simple for rideshare and gig drivers.</p>
+        </div>
+
+        <div class="badges">
+            <a href="https://play.google.com/store/apps/details?id=com.ridewealthassistant.app">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play">
+            </a>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🚗</div>
+                <h3>Mileage Tracking</h3>
+                <p>Log your daily start and end mileage. Records organized by month for easy reference.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💰</div>
+                <h3>Income & Expenses</h3>
+                <p>Track earnings and categorize business expenses in one place.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Tax Estimates</h3>
+                <p>Calculate estimated taxes with customizable rates for your country and region.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📁</div>
+                <h3>CSV Export</h3>
+                <p>Export all your records anytime. Perfect for sharing with your tax preparer.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Why Ridewealth Assistant?</h2>
+            <ul>
+                <li>Built specifically for rideshare and gig economy drivers</li>
+                <li>Works with any currency and distance unit — miles or kilometers</li>
+                <li>No ads. Clean, focused experience</li>
+                <li>Dark mode and light mode with automatic system theme detection</li>
+                <li>Guided onboarding walkthrough for new users</li>
+                <li>Your data is yours — export or delete anytime</li>
+                <li>Privacy policy and disclaimer built into the app</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Links</h2>
+            <p><a href="/support/">Support</a> · <a href="/delete-account/">Delete Account</a> · <a href="https://daddoodev.pro/privacy">Privacy Policy</a></p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2026 Ridewealth Assistant. All rights reserved.</p>
+            <p><a href="mailto:daddoodev@proton.me">daddoodev@proton.me</a></p>
+        </div>
+    </div>
+</body>
+</html>

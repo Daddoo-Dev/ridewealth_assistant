@@ -15,5 +15,7 @@ flutter doctor --android-licenses || true
 flutter pub get
 flutter build web
 
-# Copy delete-account page to build output
+# Copy static pages to build output
 cp -r delete-account build/web/
+cp -r support build/web/
+cp -r marketing build/web/
