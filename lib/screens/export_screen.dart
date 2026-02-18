@@ -341,12 +341,12 @@ class ExportScreenState extends State<ExportScreen> {
       return;
     }
 
-    String csv = const ListToCsvConverter().convert(rows);
-    print('CSV converted: $csv');
+    String csvString = csv.encode(rows);
+    print('CSV converted: $csvString');
 
     if (kIsWeb) {
       print('Processing for web platform...');
-      final bytes = utf8.encode(csv);
+      final bytes = utf8.encode(csvString);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
       html.AnchorElement(href: url)
@@ -359,7 +359,7 @@ class ExportScreenState extends State<ExportScreen> {
       try {
         final directory = await _getDirectory();
         final file = File('${directory.path}/$filename');
-        await file.writeAsString(csv);
+        await file.writeAsString(csvString);
         print('File saved to: ${file.path}');
 
         if (!mounted) return;
@@ -425,8 +425,8 @@ class ExportScreenState extends State<ExportScreen> {
     if (kIsWeb) {
       // Web export
       final csvData = _convertToCsvFormat(data);
-      final csv = const ListToCsvConverter().convert(csvData);
-      final bytes = utf8.encode(csv);
+      final csvString = csv.encode(csvData);
+      final bytes = utf8.encode(csvString);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
       html.AnchorElement(href: url)
@@ -440,8 +440,8 @@ class ExportScreenState extends State<ExportScreen> {
         final directory = await getApplicationDocumentsDirectory();
         final file = File('${directory.path}/ridewealth_export_$year.csv');
         final csvData = _convertToCsvFormat(data);
-        final csv = const ListToCsvConverter().convert(csvData);
-        await file.writeAsString(csv);
+        final csvString = csv.encode(csvData);
+        await file.writeAsString(csvString);
         
         await SharePlus.instance.share(
           ShareParams(

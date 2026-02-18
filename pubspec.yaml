@@ -16,31 +16,31 @@ dependencies:
   english_words:
   provider:
   shared_preferences: ^2.3.3
-  csv: ^5.1.1
+  csv: ^7.1.0
   http: ^1.1.2
-  intl: ^0.19.0
+  intl: ^0.20.2
   universal_html: ^2.2.4
   path_provider: ^2.1.2
   collection: ^1.18.0
-  fluttertoast: ^8.2.8
+  fluttertoast: ^9.0.0
   url_launcher: ^6.3.1
   in_app_purchase: ^3.1.13
-  in_app_purchase_android: ^0.3.6+7
-  share_plus: ^11.0.0
-  permission_handler: ^11.3.1
-  in_app_purchase_storekit: ^0.3.0
+  in_app_purchase_android: ^0.4.0+8
+  share_plus: ^12.0.1
+  permission_handler: ^12.0.1
+  in_app_purchase_storekit: ^0.4.7
   supabase_flutter:
-  connectivity_plus: ^5.0.2
+  connectivity_plus: ^7.0.0
   dynamic_color: ^1.6.8
-  purchases_flutter: ^8.10.5
+  purchases_flutter: ^9.12.0
   flutter_plugin_android_lifecycle: ^2.0.15
   flutter_svg: ^2.0.9
-  sentry_flutter: ^8.0.0
+  sentry_flutter: ^9.13.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
   integration_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.4

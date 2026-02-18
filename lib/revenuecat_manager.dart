@@ -177,8 +177,8 @@ class RevenueCatManager {
       final packageToPurchase = offerings.current!.availablePackages
           .firstWhere((p) => p.identifier == package['identifier']);
 
-      final customerInfo = await Purchases.purchasePackage(packageToPurchase);
-      final isActive = customerInfo.entitlements.active.isNotEmpty;
+      final result = await Purchases.purchasePackage(packageToPurchase);
+      final isActive = result.customerInfo.entitlements.active.isNotEmpty;
 
       return isActive;
     } catch (e) {

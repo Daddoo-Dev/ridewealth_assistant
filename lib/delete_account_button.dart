@@ -268,7 +268,7 @@ class DeleteAccountButton extends StatelessWidget {
   }
 
   Future<void> _openCsv(BuildContext context, List<List<dynamic>> data, String filename) async {
-    final csvString = const ListToCsvConverter().convert(data);
+    final csvString = csv.encode(data);
 
     if (kIsWeb) {
       final bytes = utf8.encode(csvString);
