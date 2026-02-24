@@ -37,7 +37,26 @@ class _SubscriptionRequiredScreenState
       _iapService = Platform.isIOS
           ? widget.iapService as AppleIAPService
           : widget.iapService as GoogleIAPService;
-      _loadProducts();
+      _initAndLoadProducts();
+    }
+  }
+
+  Future<void> _initAndLoadProducts() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await _iapService.initialize();
+      if (!mounted) return;
+      await _loadProducts();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -143,7 +162,7 @@ class _SubscriptionRequiredScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Premium Features'),
+        title: const Text('Get Subscription'),
         actions: [
           if (!kIsWeb)
             IconButton(
@@ -195,11 +214,17 @@ class _SubscriptionRequiredScreenState
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const Text(
-                            'Choose Your Plan',
+                            'Choose a plan and tap below to subscribe',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Your subscription unlocks full access to the app.',
+                            style: TextStyle(color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
@@ -244,7 +269,7 @@ class _SubscriptionRequiredScreenState
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loading ? null : () => _subscribe(product),
-                child: const Text('Subscribe Now'),
+                child: const Text('Get Subscription'),
               ),
             ],
           ),
