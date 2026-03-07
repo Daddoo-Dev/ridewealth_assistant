@@ -1,0 +1,8 @@
+# Dependabot config: ignore transitive tar (used only by supabase postinstall).
+# Security fixes for tar will still be applied when supabase updates their dependency.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    ignore:
+      - dependency-name: "tar"

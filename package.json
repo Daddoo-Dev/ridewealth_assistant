@@ -17,8 +17,7 @@
   "type": "commonjs",
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
-    "supabase": "^2.76.10",
-    "tar": "^7.5.9"
+    "supabase": "^2.76.10"
   },
   "devDependencies": {
     "playwright": "^1.48.0"
