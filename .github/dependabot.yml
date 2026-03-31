@@ -1,8 +1,14 @@
 # Dependabot config: ignore transitive tar (used only by supabase postinstall).
-# Security fixes for tar will still be applied when supabase updates their dependency.
+# Group "npm_and_yarn" is defined explicitly so tar is never included (Dependabot bug: ignore is ignored for grouped PRs).
 version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
+    groups:
+      npm_and_yarn:
+        patterns:
+          - "jsonwebtoken"
+          - "supabase"
+          - "playwright"
     ignore:
       - dependency-name: "tar"
