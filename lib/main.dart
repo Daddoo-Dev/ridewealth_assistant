@@ -19,6 +19,8 @@ import 'google_iap_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 
+import 'widgets/store_download_badges.dart';
+
 void main() async {
   await SentryFlutter.init(
     (options) {
@@ -362,6 +364,8 @@ class AuthScreenState extends State<AuthScreen> {
                 children: [
                   if (kIsWeb) ...[
                     WebSigninAnimation(height: 200),
+                    SizedBox(height: 16),
+                    const StoreDownloadBadges(),
                     SizedBox(height: 24),
                   ],
                   TextFormField(
