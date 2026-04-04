@@ -35,6 +35,9 @@ env.json
 .pub/
 /build/
 
+# Local Flutter SDK clone (build.sh / local builds only — do not commit)
+/flutter/
+
 # Symbolication related
 app.*.symbols
 
