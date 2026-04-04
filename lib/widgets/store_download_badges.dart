@@ -3,9 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Official-style App Store and Google Play badges for web sign-in.
-/// Assets are bundled so Netlify CSP (`connect-src`) does not block network fetches
-/// used by [SvgPicture.network] / [Image.network] on Flutter web.
-/// Opens links in a new browser tab.
+/// Both badges are bundled SVGs (Apple’s CDN can serve SVG even when saved as `.png`).
+/// Opens store URLs in a new browser tab.
 class StoreDownloadBadges extends StatelessWidget {
   const StoreDownloadBadges({super.key});
 
@@ -18,7 +17,7 @@ class StoreDownloadBadges extends StatelessWidget {
 
   static const String _googlePlayBadgeAsset =
       'assets/store/google_play_badge.svg';
-  static const String _appStoreBadgeAsset = 'assets/store/app_store_badge.png';
+  static const String _appStoreBadgeAsset = 'assets/store/app_store_badge.svg';
 
   Future<void> _open(Uri uri) async {
     await launchUrl(
@@ -64,11 +63,10 @@ class StoreDownloadBadges extends StatelessWidget {
               _BadgeLink(
                 label: 'Download on the App Store',
                 onTap: () => _open(_appStoreUri),
-                child: Image.asset(
+                child: SvgPicture.asset(
                   _appStoreBadgeAsset,
                   height: 48,
                   fit: BoxFit.contain,
-                  semanticLabel: 'Download on the App Store',
                 ),
               ),
             ],
