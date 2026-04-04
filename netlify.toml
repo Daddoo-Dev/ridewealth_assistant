@@ -2,19 +2,11 @@
   command = "bash build.sh"
   publish = "build/web"
 
+# Single-line CSP — multiline strings in headers can truncate or break parsing in some setups.
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = """
-      default-src 'self';
-      connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://www.gstatic.com https://*.gstatic.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://api.revenuecat.com https://api.stripe.com https://*.stripe.com;
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://cdn.jsdelivr.net https://js.stripe.com;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: https:;
-      frame-src 'self' https://js.stripe.com https://hooks.stripe.com;
-      worker-src 'self' blob:
-    """
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://www.gstatic.com https://*.gstatic.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://api.revenuecat.com https://api.stripe.com https://r.stripe.com https://q.stripe.com https://*.stripe.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://cdn.jsdelivr.net https://js.stripe.com https://*.stripe.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://cdn.jsdelivr.net https://js.stripe.com https://*.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.stripe.com; worker-src 'self' blob:"
 
 [[redirects]]
   from = "/*"
