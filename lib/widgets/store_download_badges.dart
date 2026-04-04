@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Official-style App Store and Google Play badges for web sign-in.
+/// Assets are bundled so Netlify CSP (`connect-src`) does not block network fetches
+/// used by [SvgPicture.network] / [Image.network] on Flutter web.
 /// Opens links in a new browser tab.
 class StoreDownloadBadges extends StatelessWidget {
   const StoreDownloadBadges({super.key});
@@ -14,10 +16,9 @@ class StoreDownloadBadges extends StatelessWidget {
     'https://apps.apple.com/us/app/ridewealth-assistant/id6670771727',
   );
 
-  static const String _googlePlayBadgeSvg =
-      'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg';
-  static const String _appStoreBadge =
-      'https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83';
+  static const String _googlePlayBadgeAsset =
+      'assets/store/google_play_badge.svg';
+  static const String _appStoreBadgeAsset = 'assets/store/app_store_badge.png';
 
   Future<void> _open(Uri uri) async {
     await launchUrl(
@@ -54,28 +55,20 @@ class StoreDownloadBadges extends StatelessWidget {
               _BadgeLink(
                 label: 'Get it on Google Play',
                 onTap: () => _open(_playStoreUri),
-                child: SvgPicture.network(
-                  _googlePlayBadgeSvg,
+                child: SvgPicture.asset(
+                  _googlePlayBadgeAsset,
                   height: 48,
                   fit: BoxFit.contain,
-                  placeholderBuilder: (context) => const SizedBox(
-                    height: 48,
-                    width: 160,
-                  ),
                 ),
               ),
               _BadgeLink(
                 label: 'Download on the App Store',
                 onTap: () => _open(_appStoreUri),
-                child: Image.network(
-                  _appStoreBadge,
+                child: Image.asset(
+                  _appStoreBadgeAsset,
                   height: 48,
                   fit: BoxFit.contain,
                   semanticLabel: 'Download on the App Store',
-                  errorBuilder: (_, __, ___) => Text(
-                    'App Store',
-                    style: theme.textTheme.labelLarge,
-                  ),
                 ),
               ),
             ],

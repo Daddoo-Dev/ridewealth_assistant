@@ -49,6 +49,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+    - assets/store/
     - assets/googlelogo.svg
     - assets/applelogo.svg
     - RWAlogo.png
