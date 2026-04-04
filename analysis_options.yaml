@@ -1,6 +1,10 @@
 analyzer:
   errors:
     deprecated_member_use: ignore
+  # Local clone from build.sh / CI — not app code; analyzing it floods the IDE with SDK diagnostics.
+  exclude:
+    - flutter/**
+    - build/**
 include: package:flutter_lints/flutter.yaml
 
 linter:
