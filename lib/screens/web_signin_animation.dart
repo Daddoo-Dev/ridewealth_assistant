@@ -72,7 +72,7 @@ class _WebSigninAnimationState extends State<WebSigninAnimation>
                     child: Transform.scale(
                       scale: carScale,
                       child: Image.asset(
-                        'rwacar.png',
+                        'assets/images/rwacar.png',
                         fit: BoxFit.contain,
                         height: 120,
                         width: _carWidth,
@@ -85,7 +85,7 @@ class _WebSigninAnimationState extends State<WebSigninAnimation>
               ),
               Center(
                 child: Image.asset(
-                  'RWAlogo.png',
+                  'assets/images/RWAlogo.png',
                   fit: BoxFit.contain,
                   height: 100,
                   errorBuilder: (_, __, ___) =>
@@ -100,7 +100,7 @@ class _WebSigninAnimationState extends State<WebSigninAnimation>
                     child: Transform.scale(
                       scale: dollarScale,
                       child: Image.asset(
-                        'dollarsign.png',
+                        'assets/images/dollarsign.png',
                         fit: BoxFit.contain,
                         height: 80,
                         errorBuilder: (_, __, ___) =>

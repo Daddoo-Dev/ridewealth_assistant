@@ -3,7 +3,7 @@ description: A financial assistant for rideshare and gig drivers.
 
 publish_to: "none"
 
-version: 1.0.28+30
+version: 1.0.31+31
 homepage: https://www.ridewealthassistant.com
 
 environment:
@@ -50,20 +50,18 @@ flutter:
   assets:
     - assets/icons/
     - assets/store/
+    - assets/images/
     - assets/googlelogo.svg
     - assets/applelogo.svg
-    - RWAlogo.png
-    - rwacar.png
-    - dollarsign.png
 
 flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "RWAlogo.png"
+  image_path: "assets/images/RWAlogo.png"
   web:
     generate: true
-    image_path: "RWAlogo.png"
+    image_path: "assets/images/RWAlogo.png"
     background_color: "#0175C2"
     theme_color: "#0175C2"
 # St. Carlo, pray for us

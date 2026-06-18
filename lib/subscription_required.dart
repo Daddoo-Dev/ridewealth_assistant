@@ -1,20 +1,16 @@
-// lib/subscription_required.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
-import 'apple_iap_service.dart';
-import 'google_iap_service.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'main.dart' show AuthState;
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
+import 'revenuecat_manager.dart';
 
 class SubscriptionRequiredScreen extends StatefulWidget {
-  final dynamic iapService;
   final VoidCallback? onSubscriptionMaybeChanged;
 
   const SubscriptionRequiredScreen({
     super.key,
-    this.iapService,
     this.onSubscriptionMaybeChanged,
   });
 
@@ -23,55 +19,21 @@ class SubscriptionRequiredScreen extends StatefulWidget {
       _SubscriptionRequiredScreenState();
 }
 
-class _SubscriptionRequiredScreenState
-    extends State<SubscriptionRequiredScreen> {
+class _SubscriptionRequiredScreenState extends State<SubscriptionRequiredScreen> {
   bool _loading = false;
   String? _error;
-  List<ProductDetails> _products = [];
-  late final dynamic _iapService;
+  List<Map<String, dynamic>> _packages = [];
 
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb && widget.iapService != null) {
-      _iapService = Platform.isIOS
-          ? widget.iapService as AppleIAPService
-          : widget.iapService as GoogleIAPService;
-      _initAndLoadProducts();
+    if (!kIsWeb) {
+      _loadPackages();
     }
   }
 
-  Future<void> _initAndLoadProducts() async {
+  Future<void> _loadPackages() async {
     if (!mounted) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      await _iapService.initialize();
-      if (!mounted) return;
-      await _loadProducts();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _loadProducts() async {
-    if (!mounted) return;
-
-    if (kIsWeb || widget.iapService == null) {
-      // On web, subscriptions are handled via RevenueCat web
-      setState(() {
-        _loading = false;
-        _error =
-            'Web subscriptions are handled through RevenueCat. Please check your subscription status.';
-      });
-      return;
-    }
 
     setState(() {
       _loading = true;
@@ -79,16 +41,21 @@ class _SubscriptionRequiredScreenState
     });
 
     try {
-      final products = await _iapService.loadProducts();
+      final offering = await RevenueCatManager.getOfferings();
       if (!mounted) return;
 
+      final packages = offering?['availablePackages'];
       setState(() {
-        _products = products;
+        _packages = packages is List
+            ? packages.cast<Map<String, dynamic>>()
+            : <Map<String, dynamic>>[];
         _loading = false;
+        if (_packages.isEmpty) {
+          _error = 'No subscription plans are available right now.';
+        }
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -97,38 +64,7 @@ class _SubscriptionRequiredScreenState
   }
 
   Future<void> _restorePurchases() async {
-    if (!mounted) return;
-
-    if (kIsWeb || widget.iapService == null) {
-      // On web, restore is handled via RevenueCat
-      return;
-    }
-
-    setState(() => _loading = true);
-    try {
-      await _iapService.restorePurchases();
-      if (!mounted) return;
-      setState(() => _loading = false);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _subscribe(ProductDetails product) async {
-    if (!mounted) return;
-
-    if (kIsWeb || widget.iapService == null) {
-      // On web, subscriptions are handled via RevenueCat
-      setState(() {
-        _error =
-            'Web subscriptions are handled through RevenueCat. Please check your subscription status.';
-      });
-      return;
-    }
+    if (!mounted || kIsWeb) return;
 
     setState(() {
       _loading = true;
@@ -136,21 +72,60 @@ class _SubscriptionRequiredScreenState
     });
 
     try {
-      await _iapService.purchaseProduct(
-        product,
-        onPurchaseComplete: () {
-          if (!mounted) return;
-          widget.onSubscriptionMaybeChanged?.call();
-        },
-      );
+      final restored = await RevenueCatManager.restorePurchases();
       if (!mounted) return;
-      setState(() => _loading = false);
+
+      if (restored) {
+        widget.onSubscriptionMaybeChanged?.call();
+      } else {
+        setState(() {
+          _error = 'No active subscription found to restore.';
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = e.toString();
-        _loading = false;
       });
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _subscribe(Map<String, dynamic> package) async {
+    if (!mounted || kIsWeb) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final active = await RevenueCatManager.purchaseSubscription(package);
+      if (!mounted) return;
+
+      if (active) {
+        widget.onSubscriptionMaybeChanged?.call();
+      }
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      final code = PurchasesErrorHelper.getErrorCode(e);
+      if (code != PurchasesErrorCode.purchaseCancelledError) {
+        setState(() {
+          _error = e.message ?? e.toString();
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -158,8 +133,22 @@ class _SubscriptionRequiredScreenState
     Provider.of<AuthState>(context, listen: false).signOut();
   }
 
+  bool _packageHasFreeTrial(Map<String, dynamic> package) {
+    return package['hasFreeTrial'] == true;
+  }
+
+  String _packagePrice(Map<String, dynamic> package) {
+    final product = package['product'];
+    if (product is Map<String, dynamic>) {
+      return product['priceString'] as String? ?? '';
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasTrialOffer = _packages.any(_packageHasFreeTrial);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Get Subscription'),
@@ -195,14 +184,17 @@ class _SubscriptionRequiredScreenState
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            _error!,
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              _error!,
+                              style: const TextStyle(color: Colors.red),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: _loadProducts,
+                            onPressed: _loadPackages,
                             child: const Text('Retry'),
                           ),
                         ],
@@ -213,25 +205,29 @@ class _SubscriptionRequiredScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
-                            'Choose a plan and tap below to subscribe',
-                            style: TextStyle(
+                          Text(
+                            hasTrialOffer
+                                ? 'Start your 30-day free trial'
+                                : 'Choose a plan and subscribe',
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Your subscription unlocks full access to the app.',
-                            style: TextStyle(color: Colors.grey),
+                          Text(
+                            hasTrialOffer
+                                ? 'Try the full app free for 30 days. Billing starts after the trial unless you cancel.'
+                                : 'Your subscription unlocks full access to the app.',
+                            style: const TextStyle(color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
                           ..._buildSubscriptionCards(),
                           const SizedBox(height: 24),
                           const Text(
-                            'Subscription automatically renews. Cancel anytime.',
+                            'Subscription automatically renews. Cancel anytime in your device account settings.',
                             style: TextStyle(color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
@@ -242,7 +238,12 @@ class _SubscriptionRequiredScreenState
   }
 
   List<Widget> _buildSubscriptionCards() {
-    return _products.map((product) {
+    return _packages.map((package) {
+      final hasTrial = _packageHasFreeTrial(package);
+      final title = package['title'] as String? ?? 'Annual Subscription';
+      final description =
+          package['description'] as String? ?? 'Full access to the app';
+
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         child: Padding(
@@ -250,26 +251,40 @@ class _SubscriptionRequiredScreenState
           child: Column(
             children: [
               Text(
-                product.title,
+                title,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(product.description),
+              Text(description, textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              Text(
-                product.price,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              if (hasTrial) ...[
+                const Text(
+                  '30-day free trial',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  'Then ${_packagePrice(package)} / year',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ] else
+                Text(
+                  _packagePrice(package),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _loading ? null : () => _subscribe(product),
-                child: const Text('Get Subscription'),
+                onPressed: _loading ? null : () => _subscribe(package),
+                child: Text(hasTrial ? 'Start Free Trial' : 'Subscribe'),
               ),
             ],
           ),

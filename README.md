@@ -131,21 +131,15 @@ The app uses a subscription-based model managed through RevenueCat:
 ### Project Structure
 
 ```
-lib/
-├── main.dart                 # App entry point
-├── authmethod.dart          # Authentication methods
-├── environment.dart         # Environment variable loader
-├── screens/                 # UI screens
-│   ├── home_screen.dart
-│   ├── income_screen.dart
-│   ├── expenses_screen.dart
-│   ├── mileage_screen.dart
-│   ├── tax_estimates.dart
-│   ├── export_screen.dart
-│   └── user_screen.dart
-├── services/                # Business logic services
-├── theme/                   # App theming
-└── mileage_rates.dart      # IRS mileage rate data
+assets/images/          # App images (logo, car, dollar sign)
+assets/icons/           # UI icons
+assets/store/           # Store badge SVGs
+docs/store/             # Play Store PDFs and questionnaires
+docs/release-assets/    # Store icons, QR codes, 1024px artwork
+static/                 # Netlify static pages (support, terms, marketing, delete-account)
+signing/certificates/   # iOS provisioning (gitignored)
+supabase/               # Migrations and edge functions
+lib/                    # Flutter app source
 ```
 
 ## Build

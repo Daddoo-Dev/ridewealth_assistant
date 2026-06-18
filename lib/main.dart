@@ -14,10 +14,7 @@ import 'screens/web_signin_animation.dart';
 import 'environment.dart';
 import 'subscription_required.dart';
 import 'error_messages.dart';
-import 'apple_iap_service.dart';
-import 'google_iap_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
 
 import 'widgets/store_download_badges.dart';
 
@@ -126,19 +123,9 @@ class AuthWrapperState extends State<AuthWrapper> {
               if (hasSubscription) {
                 return _buildMainOrOnboarding();
               } else {
-                // Force subscription screen
-                // On web, IAP services aren't available - RevenueCat handles web subscriptions
-                if (kIsWeb) {
-                  return SubscriptionRequiredScreen(
-                    iapService: null,
-                  );
-                } else {
-                  return SubscriptionRequiredScreen(
-                    iapService:
-                        Platform.isIOS ? AppleIAPService() : GoogleIAPService(),
-                    onSubscriptionMaybeChanged: () => setState(() {}),
-                  );
-                }
+                return SubscriptionRequiredScreen(
+                  onSubscriptionMaybeChanged: () => setState(() {}),
+                );
               }
             },
           );
@@ -180,18 +167,6 @@ class AuthWrapperState extends State<AuthWrapper> {
 
       if (isSubscribed || (trialStatus['isInTrial'] == true)) {
         return true;
-      }
-
-      // Fallback: raw IAP may have updated Supabase before RevenueCat synced
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user != null) {
-        final res = await Supabase.instance.client
-            .from('users')
-            .select('subscription_status')
-            .eq('id', user.id)
-            .maybeSingle();
-        final status = res?['subscription_status'] as String?;
-        if (status == 'active') return true;
       }
 
       return false;

@@ -68,7 +68,7 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
         isLoading = true;
       });
 
-      await RevenueCatManager.purchasePackage(package['identifier']);
+      await RevenueCatManager.purchasePackage(package);
       
       // Update subscription status in Supabase
       await _updateSubscriptionStatus();
@@ -273,16 +273,36 @@ class SubscriptionManagerState extends State<SubscriptionManager> {
               ),
             ),
             SizedBox(height: 16),
-            ...offerings?.entries.map((entry) => Card(
-              child: ListTile(
-                title: Text(entry.value['title'] ?? 'Premium Plan'),
-                subtitle: Text(entry.value['description'] ?? 'Full access to all features'),
-                trailing: ElevatedButton(
-                  onPressed: () => _purchaseSubscription(entry.value),
-                  child: Text('Subscribe'),
+            ...((offerings?['availablePackages'] as List<dynamic>?) ?? [])
+                .cast<Map<String, dynamic>>()
+                .map((package) {
+              final product = package['product'];
+              final price = product is Map<String, dynamic>
+                  ? product['priceString'] as String? ?? ''
+                  : '';
+              return Card(
+                child: ListTile(
+                  title: Text(
+                    package['title'] as String? ?? 'Annual Subscription',
+                  ),
+                  subtitle: Text(
+                    package['description'] as String? ??
+                        'Full access to all features',
+                  ),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (price.isNotEmpty) Text(price),
+                      ElevatedButton(
+                        onPressed: () => _purchaseSubscription(package),
+                        child: const Text('Subscribe'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            )).toList() ?? [],
+              );
+            }),
           ],
         ),
       ),

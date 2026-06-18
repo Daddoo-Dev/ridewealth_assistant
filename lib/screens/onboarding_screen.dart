@@ -112,7 +112,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         if (page.useLogo)
                           Image.asset(
-                            'RWAlogo.png',
+                            'assets/images/RWAlogo.png',
                             width: 120,
                             height: 120,
                           )

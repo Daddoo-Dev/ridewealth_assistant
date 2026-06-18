@@ -7,5 +7,6 @@
         }
     ],
     "cmake.ignoreCMakeListsMissing": true,
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "notchlist.completedVisibilityMode": "hide_all"
 }

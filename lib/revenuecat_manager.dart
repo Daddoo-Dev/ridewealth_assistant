@@ -143,14 +143,20 @@ class RevenueCatManager {
       final currentOffering = offerings.current!;
       final availablePackages =
           currentOffering.availablePackages.map((package) {
+        final product = package.storeProduct;
+        final intro = product.introductoryPrice;
         return {
           'identifier': package.identifier,
           'packageType': package.packageType.toString(),
+          'title': product.title,
+          'description': product.description,
           'product': {
-            'identifier': package.storeProduct.identifier,
-            'price': package.storeProduct.price,
-            'priceString': package.storeProduct.priceString,
+            'identifier': product.identifier,
+            'price': product.price,
+            'priceString': product.priceString,
           },
+          'introPriceString': intro?.priceString,
+          'hasFreeTrial': intro != null && intro.price == 0,
         };
       }).toList();
 
@@ -164,27 +170,46 @@ class RevenueCatManager {
     }
   }
 
-  /// Purchase subscription
+  /// Purchase subscription via native App Store / Play Store billing.
   static Future<bool> purchaseSubscription(Map<String, dynamic> package) async {
     try {
       if (kIsWeb) return false;
 
-      final offerings = await Purchases.getOfferings();
-      if (offerings.current == null) {
-        throw Exception('No offerings available');
+      final packageId = package['identifier'] as String?;
+      if (packageId == null || packageId.isEmpty) {
+        throw Exception('Package identifier is required');
       }
 
-      final packageToPurchase = offerings.current!.availablePackages
-          .firstWhere((p) => p.identifier == package['identifier']);
-
-      final result = await Purchases.purchasePackage(packageToPurchase);
-      final isActive = result.customerInfo.entitlements.active.isNotEmpty;
-
-      return isActive;
+      return await purchasePackageById(packageId);
     } catch (e) {
       print('Error purchasing subscription: $e');
-      return false;
+      rethrow;
     }
+  }
+
+  /// Purchase a RevenueCat package by identifier (native store checkout).
+  static Future<bool> purchasePackageById(String packageId) async {
+    if (kIsWeb) return false;
+
+    final offerings = await Purchases.getOfferings();
+    if (offerings.current == null) {
+      throw Exception('No offerings available');
+    }
+
+    Package? packageToPurchase;
+    for (final p in offerings.current!.availablePackages) {
+      if (p.identifier == packageId) {
+        packageToPurchase = p;
+        break;
+      }
+    }
+
+    if (packageToPurchase == null) {
+      throw Exception('Package not found: $packageId');
+    }
+
+    final result = await Purchases.purchasePackage(packageToPurchase);
+    return result.customerInfo.entitlements.active.isNotEmpty;
   }
 
   /// Restore purchases
@@ -305,9 +330,15 @@ class RevenueCatManager {
     return await getCurrentOffering();
   }
 
-  /// Purchase a package
-  static Future<bool> purchasePackage(Map<String, dynamic> package) async {
-    return await purchaseSubscription(package);
+  /// Purchase a package (map or package identifier string).
+  static Future<bool> purchasePackage(dynamic package) async {
+    if (package is String) {
+      return purchasePackageById(package);
+    }
+    if (package is Map<String, dynamic>) {
+      return purchaseSubscription(package);
+    }
+    throw Exception('Invalid package argument');
   }
 
   /// Cancel subscription
