@@ -10,7 +10,7 @@ class MileageRate {
   });
 }
 
-List<MileageRate> mileageRates = [
+final List<MileageRate> mileageRates = [
   MileageRate(
     startDate: DateTime(2024, 1, 1),
     endDate: DateTime(2024, 12, 31),

@@ -11,7 +11,6 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   final supabase = Supabase.instance.client;
-  final User? _user = Supabase.instance.client.auth.currentUser;
 
   List<Map<String, dynamic>> expenses = [];
   TextEditingController amountController = TextEditingController();
@@ -57,8 +56,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Future<void> loadExpenses() async {
-    if (_user == null) return;
-    final user = _user;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
     try {
       final response = await supabase
           .from('expenses')
@@ -73,7 +72,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         error = '';
       });
     } catch (e) {
-      print("Error loading expenses: $e");
+      debugPrint("Error loading expenses: $e");
       setState(() {
         error = "Failed to load expenses. Please try again.";
       });
@@ -88,8 +87,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     if (amountController.text.isNotEmpty &&
         descriptionController.text.isNotEmpty &&
         category.isNotEmpty) {
-      if (_user == null) return;
-      final user = _user;
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
       try {
         DateTime localDate = selectedDate;
         localDate =
@@ -153,6 +152,16 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Expense updated successfully")),
           );
+          setState(() {
+            amountController.clear();
+            descriptionController.clear();
+            notesController.clear();
+            selectedDate = DateTime.now();
+            category = '';
+            editingExpense = null;
+            error = '';
+          });
+          await loadExpenses();
         } else {
           await supabase.from('expenses').insert(expenseData);
           if (!mounted) return;
@@ -171,7 +180,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           await loadExpenses();
         }
       } catch (e) {
-        print("Error adding/updating expense: $e");
+        debugPrint("Error adding/updating expense: $e");
         setState(() {
           error = "Failed to add/update expense. Please try again.";
         });
@@ -233,7 +242,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           SnackBar(content: Text("Expense deleted successfully")),
         );
       } catch (e) {
-        print("Error deleting expense: $e");
+        debugPrint("Error deleting expense: $e");
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to delete expense. Please try again.")),
@@ -333,17 +342,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     .copyWith(labelText: 'Description'),
               ),
               SizedBox(height: 16),
-              TextField(
-                controller: notesController,
-                decoration: AppThemes.getInputDecoration(context)
-                    .copyWith(
-                      labelText: 'Notes (Optional)',
-                      hintText: 'Add additional notes',
-                    ),
-                maxLines: 2,
-                textCapitalization: TextCapitalization.sentences,
-              ),
-              SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -357,7 +355,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                         context: context,
                         initialDate: selectedDate,
                         firstDate: DateTime(2000),
-                        lastDate: DateTime(2025),
+                        lastDate: DateTime.now().add(const Duration(days: 1)),
                       );
                       if (picked != null && picked != selectedDate) {
                         setState(() {

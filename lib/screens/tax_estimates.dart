@@ -18,7 +18,7 @@ class MileageCalculator {
         return rate.rate;
       }
     }
-    print(
+    debugPrint(
         "Warning: No applicable rate found for date $date. Using most recent rate.");
     return mileageRates.last.rate;
   }
@@ -30,7 +30,6 @@ class EstimatedTaxScreen extends StatefulWidget {
 }
 
 class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
-  User? user;
   String selectedPeriod = "";
   Map<String, dynamic>? taxEstimates;
   String error = "";
@@ -45,37 +44,33 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
 
   bool applyMileageToState = true;
 
-  final List<String> periods = [
-    "Q1 2026",
-    "Q2 2026",
-    "Q3 2026",
-    "Q4 2026",
-    "Q1 2027",
-    "Q2 2027",
-    "Q3 2027",
-    "Q4 2027",
-    "Q1 2028",
-    "Q2 2028",
-    "Q3 2028",
-    "Q4 2028",
-  ];
+  List<String> get periods {
+    final currentYear = DateTime.now().year;
+    final result = <String>[];
+    for (int y = currentYear + 1; y >= 2024; y--) {
+      for (int q = 4; q >= 1; q--) {
+        result.add('Q$q $y');
+      }
+    }
+    return result;
+  }
 
   final MileageCalculator mileageCalculator = MileageCalculator();
 
   @override
   void initState() {
     super.initState();
-    user = Supabase.instance.client.auth.currentUser;
     loadUserRates();
   }
 
   Future<void> loadUserRates() async {
+    final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       try {
         final response = await Supabase.instance.client
             .from('users')
             .select()
-            .eq('id', user!.id)
+            .eq('id', user.id)
             .single();
 
         var data = response;
@@ -92,24 +87,25 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
           customMileageRate = customMileageRateCents / 100;
         });
       } catch (e) {
-        print("Error loading user rates: $e");
+        debugPrint("Error loading user rates: $e");
       }
     }
   }
 
   Future<void> saveUserRates() async {
+    final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       try {
         await Supabase.instance.client
             .from('users')
             .upsert({
-          'id': user!.id,
+          'id': user.id,
           'federalRate': federalRate,
           'stateRate': stateRate,
           'customMileageRate': customMileageRate,
         });
       } catch (e) {
-        print("Error saving user rates: $e");
+        debugPrint("Error saving user rates: $e");
       }
     }
   }
@@ -138,8 +134,8 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
                 onChanged: (val) {
                   setState(() {
                     applyMileageToState = val;
-                    fetchData();
                   });
+                  fetchData();
                 },
                 activeColor: AppThemes.primaryColor,
               ),
@@ -186,8 +182,8 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
       onChanged: (String? newValue) {
         setState(() {
           selectedPeriod = newValue ?? "";
-          fetchData();
         });
+        fetchData();
       },
     );
   }
@@ -215,9 +211,9 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
               setState(() {
                 federalRatePercentage = newValue;
                 federalRate = newValue / 100;
-                saveUserRates();
-                fetchData();
               });
+              saveUserRates();
+              fetchData();
             }
           },
         ),
@@ -239,9 +235,9 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
               setState(() {
                 stateRatePercentage = newValue;
                 stateRate = newValue / 100;
-                saveUserRates();
-                fetchData();
               });
+              saveUserRates();
+              fetchData();
             }
           },
         ),
@@ -263,9 +259,9 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
               setState(() {
                 customMileageRateCents = newValue;
                 customMileageRate = newValue / 100;
-                saveUserRates();
-                fetchData();
               });
+              saveUserRates();
+              fetchData();
             }
           },
         ),
@@ -275,6 +271,8 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
 
   Future<void> fetchData() async {
     if (selectedPeriod.isEmpty) return;
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
 
     try {
       setState(() {
@@ -299,39 +297,31 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
         return;
       }
 
-      print('DEBUG: user id: ${user?.id}');
-      print('DEBUG: startDate: ${startDate.toIso8601String()}');
-      print('DEBUG: endDate: ${endDate.toIso8601String()}');
+      // Fetch data for the selected period in parallel
+      final results = await Future.wait([
+        Supabase.instance.client
+            .from('expenses')
+            .select()
+            .eq('user_id', user.id)
+            .gte('date', startDate.toIso8601String())
+            .lte('date', endDate.toIso8601String()),
+        Supabase.instance.client
+            .from('income')
+            .select()
+            .eq('user_id', user.id)
+            .gte('date', startDate.toIso8601String())
+            .lte('date', endDate.toIso8601String()),
+        Supabase.instance.client
+            .from('mileage')
+            .select()
+            .eq('user_id', user.id)
+            .gte('start_date', startDate.toIso8601String())
+            .lte('start_date', endDate.toIso8601String()),
+      ]);
 
-      // Fetch data for the selected period
-      final expensesResponse = await Supabase.instance.client
-          .from('expenses')
-          .select()
-          .eq('user_id', user!.id)
-          .gte('date', startDate.toIso8601String())
-          .lte('date', endDate.toIso8601String());
-
-      final incomeResponse = await Supabase.instance.client
-          .from('income')
-          .select()
-          .eq('user_id', user!.id)
-          .gte('date', startDate.toIso8601String())
-          .lte('date', endDate.toIso8601String());
-
-      final mileageResponse = await Supabase.instance.client
-          .from('mileage')
-          .select()
-          .eq('user_id', user!.id)
-          .gte('start_date', startDate.toIso8601String())
-          .lte('start_date', endDate.toIso8601String());
-
-      print('DEBUG: expensesResponse: $expensesResponse');
-      print('DEBUG: incomeResponse: $incomeResponse');
-      print('DEBUG: mileageResponse: $mileageResponse');
-
-      final expenses = expensesResponse as List;
-      final income = incomeResponse as List;
-      final mileage = mileageResponse as List;
+      final expenses = results[0] as List;
+      final income = results[1] as List;
+      final mileage = results[2] as List;
 
       // Calculate totals
       double totalIncome = income.fold(0.0, (total, item) => total + (item['amount'] ?? 0.0));
@@ -348,7 +338,7 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
         };
       });
     } catch (e) {
-      print('DEBUG: fetchData error: $e');
+
       setState(() {
         error = "Error fetching data: $e";
       });

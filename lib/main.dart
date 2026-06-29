@@ -15,6 +15,7 @@ import 'environment.dart';
 import 'subscription_required.dart';
 import 'error_messages.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'widgets/store_download_badges.dart';
 
@@ -101,6 +102,17 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class AuthWrapperState extends State<AuthWrapper> {
+  Future<bool>? _subscriptionFuture;
+  String? _lastCheckedUserId;
+
+  Future<bool> _getSubscriptionFuture(String userId) {
+    if (_subscriptionFuture == null || _lastCheckedUserId != userId) {
+      _lastCheckedUserId = userId;
+      _subscriptionFuture = _checkSubscriptionStatus();
+    }
+    return _subscriptionFuture!;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthState>(
@@ -108,7 +120,7 @@ class AuthWrapperState extends State<AuthWrapper> {
         if (authState.user != null) {
           // Check subscription status before allowing access
           return FutureBuilder<bool>(
-            future: _checkSubscriptionStatus(),
+            future: _getSubscriptionFuture(authState.user!.id),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Scaffold(
@@ -124,7 +136,9 @@ class AuthWrapperState extends State<AuthWrapper> {
                 return _buildMainOrOnboarding();
               } else {
                 return SubscriptionRequiredScreen(
-                  onSubscriptionMaybeChanged: () => setState(() {}),
+                  onSubscriptionMaybeChanged: () => setState(() {
+                    _subscriptionFuture = null;
+                  }),
                 );
               }
             },
@@ -159,20 +173,26 @@ class AuthWrapperState extends State<AuthWrapper> {
     );
   }
 
+  static const String _subscriptionCacheKey = 'rwa_subscription_active';
+
   Future<bool> _checkSubscriptionStatus() async {
     try {
-      // Check if user has active subscription or trial
       final isSubscribed = await RevenueCatManager.isSubscribed();
       final trialStatus = await RevenueCatManager.getTrialStatus();
+      final result = isSubscribed || (trialStatus['isInTrial'] == true);
 
-      if (isSubscribed || (trialStatus['isInTrial'] == true)) {
-        return true;
-      }
+      // Persist so a network error does not lock out a paying user
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_subscriptionCacheKey, result);
 
-      return false;
-    } catch (e) {
-      print('Error checking subscription status: $e');
-      return false;
+      return result;
+    } catch (e, stack) {
+      debugPrint('Error checking subscription status: $e');
+      Sentry.captureException(e, stackTrace: stack);
+
+      // Fall back to last-known status rather than failing closed
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_subscriptionCacheKey) ?? false;
     }
   }
 }
@@ -445,43 +465,23 @@ class AuthState extends ChangeNotifier {
   }
 
   void _initializeAuth() {
-    print('Initializing auth state listener...');
-
-    // Check if there's already an existing session and set RevenueCat user immediately
     final currentSession = Supabase.instance.client.auth.currentSession;
     if (currentSession?.user != null) {
-      print('Found existing session, setting RevenueCat user immediately');
       RevenueCatManager.setRevenueCatUser(currentSession!.user.id);
     }
 
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
-      print('=== Auth State Change ===');
-      print('Event: ${data.event}');
-      print('Session: ${data.session != null ? 'exists' : 'null'}');
-      print('User: ${data.session?.user.id ?? 'null'}');
-
       try {
         _user = data.session?.user;
         if (_user != null) {
-          print('User authenticated: ${_user!.id}');
           await createSupabaseUserDocument(_user!);
-          // Sync user with RevenueCat
           await RevenueCatManager.setRevenueCatUser(_user!.id);
-
-          // Debug: Get current RevenueCat user ID
-          final revenueCatUserId =
-              await RevenueCatManager.getCurrentRevenueCatUserId();
-          print('Supabase user ID: ${_user!.id}');
-          print('RevenueCat user ID: $revenueCatUserId');
-        } else {
-          print('No user in session');
         }
         notifyListeners();
       } catch (e, stack) {
-        print('Auth state change error: $e');
+        debugPrint('Auth state change error: $e');
         Sentry.captureException(e, stackTrace: stack);
       }
-      print('=== End Auth State Change ===');
     });
   }
 
@@ -493,10 +493,12 @@ class AuthState extends ChangeNotifier {
   Future<void> signOut() async {
     try {
       await Supabase.instance.client.auth.signOut();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('rwa_subscription_active');
       _user = null;
       notifyListeners();
     } catch (e, stack) {
-      print('Sign out error in AuthState: $e');
+      debugPrint('Sign out error: $e');
       Sentry.captureException(e, stackTrace: stack);
       rethrow;
     }

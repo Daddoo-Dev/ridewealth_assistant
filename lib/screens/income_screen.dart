@@ -11,7 +11,6 @@ class IncomeScreen extends StatefulWidget {
 
 class _IncomeScreenState extends State<IncomeScreen> {
   final supabase = Supabase.instance.client;
-  final User? _user = Supabase.instance.client.auth.currentUser;
 
   List<Map<String, dynamic>> incomes = [];
   TextEditingController amountController = TextEditingController();
@@ -38,8 +37,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
   }
 
   Future<void> loadIncomes() async {
-    if (_user == null) return;
-    final user = _user;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
     try {
       final response = await supabase
           .from('income')
@@ -54,7 +53,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
         error = '';
       });
     } catch (e) {
-      print("Error loading incomes: $e");
+      debugPrint("Error loading incomes: $e");
       setState(() {
         error = "Failed to load incomes. Please try again.";
       });
@@ -68,6 +67,8 @@ class _IncomeScreenState extends State<IncomeScreen> {
   Future<void> addIncome() async {
     if (amountController.text.isNotEmpty &&
         descriptionController.text.isNotEmpty) {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
       try {
         DateTime localDate = selectedDate;
         localDate =
@@ -116,7 +117,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           'amount': double.parse(cleanAmount.toStringAsFixed(2)),
           'description': descriptionController.text,
           'date': localDate.toIso8601String(),
-          'user_id': _user!.id,
+          'user_id': user.id,
           'notes': notesController.text.isEmpty ? null : notesController.text,
           'created_at': DateTime.now().toIso8601String()
         };
@@ -130,6 +131,15 @@ class _IncomeScreenState extends State<IncomeScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Income updated successfully")),
           );
+          setState(() {
+            amountController.clear();
+            descriptionController.clear();
+            notesController.clear();
+            selectedDate = DateTime.now();
+            editingIncome = null;
+            error = '';
+          });
+          await loadIncomes();
         } else {
           await supabase.from('income').insert(incomeData);
           if (!mounted) return;
@@ -147,7 +157,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           await loadIncomes();
         }
       } catch (e) {
-        print("Error adding/updating income: $e");
+        debugPrint("Error adding/updating income: $e");
         setState(() {
           error = "Failed to add/update income. Please try again.";
         });
@@ -208,7 +218,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           SnackBar(content: Text("Income deleted successfully")),
         );
       } catch (e) {
-        print("Error deleting income: $e");
+        debugPrint("Error deleting income: $e");
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to delete income. Please try again.")),
@@ -331,7 +341,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
                         context: context,
                         initialDate: selectedDate,
                         firstDate: DateTime(2000),
-                        lastDate: DateTime(2025),
+                        lastDate: DateTime.now().add(const Duration(days: 1)),
                       );
                       if (picked != null && picked != selectedDate) {
                         setState(() {

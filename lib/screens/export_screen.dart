@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import '../theme/app_themes.dart';
+import '../mileage_rates.dart' as mileage_rates;
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -18,7 +19,6 @@ class ExportScreen extends StatefulWidget {
 
 class ExportScreenState extends State<ExportScreen> {
   final supabase = Supabase.instance.client;
-  final User? user = Supabase.instance.client.auth.currentUser;
 
   int selectedYear = DateTime.now().year;
   String error = '';
@@ -83,9 +83,7 @@ class ExportScreenState extends State<ExportScreen> {
   }
 
   Future<void> handleExport() async {
-    print('Starting export process...');
     if (!userAuthenticated()) {
-      print('User not authenticated');
       setState(() {
         error = 'User not authenticated';
       });
@@ -93,27 +91,12 @@ class ExportScreenState extends State<ExportScreen> {
     }
 
     try {
-      print('Fetching expenses...');
       final expenses = await fetchExpenses();
-      print('Fetched ${expenses.length} expenses');
-
-      print('Fetching income...');
       final income = await fetchIncome();
-      print('Fetched ${income.length} income records');
-
-      print('Fetching mileage...');
       final mileage = await fetchMileage();
-      print('Fetched ${mileage.length} mileage records');
-
-      print('Generating export data...');
       final exportData = generateExportData(expenses, income, mileage);
-      print('Export data generated: ${exportData.length} rows');
-
-      print('Opening CSV...');
       await openCsvRows(exportData, 'export_data.csv');
-      print('CSV process completed');
     } catch (err) {
-      print('Error during export: $err');
       setState(() {
         error = 'Failed to export data. Please try again.';
       });
@@ -121,13 +104,11 @@ class ExportScreenState extends State<ExportScreen> {
   }
 
   bool userAuthenticated() {
-    return user != null;
+    return supabase.auth.currentUser != null;
   }
 
   Future<void> handleMileageExport() async {
-    print('Starting mileage export process...');
     if (!userAuthenticated()) {
-      print('User not authenticated');
       setState(() {
         error = 'User not authenticated';
       });
@@ -135,21 +116,10 @@ class ExportScreenState extends State<ExportScreen> {
     }
 
     try {
-      print('Fetching mileage...');
       final mileage = await fetchMileage();
-      print('Fetched mileage:');
-      for (var i = 0; i < mileage.length; i++) {
-        print('Mileage $i: ${mileage[i]}');
-      }
-      print('Fetched ${mileage.length} mileage records');
       final formattedMileage = formatMileageForExport(mileage);
-      print('Formatted mileage: $formattedMileage');
-      print('Opening CSV...');
       await openCsv(formattedMileage, 'mileage_data.csv');
-      print('CSV process completed');
-    } catch (err, stack) {
-      print('Error during mileage export: $err');
-      print('Stack trace: $stack');
+    } catch (err) {
       setState(() {
         error = 'Failed to export mileage data. Please try again.';
       });
@@ -163,7 +133,7 @@ class ExportScreenState extends State<ExportScreen> {
     final response = await supabase
         .from('expenses')
         .select()
-        .eq('user_id', user!.id)
+        .eq('user_id', supabase.auth.currentUser!.id)
         .gte('date', startOfYear.toIso8601String())
         .lte('date', endOfYear.toIso8601String());
 
@@ -181,7 +151,7 @@ class ExportScreenState extends State<ExportScreen> {
     final response = await supabase
         .from('income')
         .select()
-        .eq('user_id', user!.id)
+        .eq('user_id', supabase.auth.currentUser!.id)
         .gte('date', startOfYear.toIso8601String())
         .lte('date', endOfYear.toIso8601String());
 
@@ -196,27 +166,19 @@ class ExportScreenState extends State<ExportScreen> {
     final startOfYear = DateTime(selectedYear, 1, 1);
     final endOfYear = DateTime(selectedYear, 12, 31, 23, 59, 59);
 
-    print('Querying mileage for user: $user!.id, start: $startOfYear, end: $endOfYear');
     final response = await supabase
         .from('mileage')
         .select()
-        .eq('user_id', user!.id)
+        .eq('user_id', supabase.auth.currentUser!.id)
         .gte('start_date', startOfYear.toIso8601String())
         .lte('start_date', endOfYear.toIso8601String());
-    print('Raw mileage response: $response.runtimeType $response');
 
-    try {
-      return (response as List).map((doc) {
-        final data = doc;
-        data['start_date'] = DateTime.parse(data['start_date']);
-        data['end_date'] = DateTime.parse(data['end_date']);
-        return data;
-      }).cast<Map<String, dynamic>>().toList();
-    } catch (e) {
-      print('Error parsing mileage records: $e');
-      print('Problematic response: $response');
-      rethrow;
-    }
+    return (response as List).map((doc) {
+      final data = doc;
+      data['start_date'] = DateTime.parse(data['start_date']);
+      data['end_date'] = DateTime.parse(data['end_date']);
+      return data;
+    }).cast<Map<String, dynamic>>().toList();
   }
 
   // List of all expense categories
@@ -311,9 +273,19 @@ class ExportScreenState extends State<ExportScreen> {
   }
 
   double _calculateMileageDeduction(List<Map<String, dynamic>> mileage) {
-    const rate = 0.655;
-    return mileage.fold(0, (total, entry) {
-      int miles = entry['end_mileage'] - entry['start_mileage'];
+    return mileage.fold(0.0, (total, entry) {
+      final int miles = (entry['end_mileage'] ?? 0) - (entry['start_mileage'] ?? 0);
+      // entry['start_date'] is already a DateTime (parsed in fetchMileage)
+      final DateTime date = entry['start_date'] is DateTime
+          ? entry['start_date'] as DateTime
+          : DateTime.now();
+      double rate = mileage_rates.mileageRates.last.rate;
+      for (final r in mileage_rates.mileageRates.reversed) {
+        if (!date.isBefore(r.startDate)) {
+          rate = r.rate;
+          break;
+        }
+      }
       return total + (miles * rate);
     });
   }
@@ -332,7 +304,6 @@ class ExportScreenState extends State<ExportScreen> {
   }
 
   Future<void> openCsvRows(List<List<dynamic>> rows, String filename) async {
-    print('Starting openCsvRows...');
     if (rows.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -341,11 +312,9 @@ class ExportScreenState extends State<ExportScreen> {
       return;
     }
 
-    String csvString = csv.encode(rows);
-    print('CSV converted: $csvString');
+    final String csvString = csv.encode(rows);
 
     if (kIsWeb) {
-      print('Processing for web platform...');
       final bytes = utf8.encode(csvString);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
@@ -353,14 +322,11 @@ class ExportScreenState extends State<ExportScreen> {
         ..setAttribute("download", filename)
         ..click();
       html.Url.revokeObjectUrl(url);
-      print('Web download initiated');
     } else {
-      print('Processing for mobile platform...');
       try {
         final directory = await _getDirectory();
         final file = File('${directory.path}/$filename');
         await file.writeAsString(csvString);
-        print('File saved to: ${file.path}');
 
         if (!mounted) return;
         final box = context.findRenderObject() as RenderBox?;
@@ -381,18 +347,15 @@ class ExportScreenState extends State<ExportScreen> {
           SnackBar(content: Text('CSV file saved and ready to share')),
         );
       } catch (e) {
-        print('Error handling CSV: $e');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error with CSV file: $e')),
         );
       }
     }
-    print('openCsvRows completed');
   }
 
   Future<void> openCsv(List<Map<String, dynamic>> data, String filename) async {
-    print('Starting openCsv...');
     if (data.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -401,11 +364,10 @@ class ExportScreenState extends State<ExportScreen> {
       return;
     }
 
-    List<List<dynamic>> rows = [
+    final List<List<dynamic>> rows = [
       data.first.keys.toList(),
       ...data.map((item) => item.values.map((v) => v ?? 0).toList())
     ];
-    print('Rows prepared: $rows');
 
     await openCsvRows(rows, filename);
   }

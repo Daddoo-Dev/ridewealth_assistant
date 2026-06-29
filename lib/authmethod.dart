@@ -1,28 +1,19 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'revenuecat_manager.dart';
 
 final supabase = Supabase.instance.client;
 
 Future<void> createSupabaseUserDocument(User user) async {
   try {
-    // Try to get existing user
-    await supabase.from('users').select().eq('id', user.id).single();
-
-    // User exists, no need to update anything
-  } catch (e) {
-    // User doesn't exist, create new user
-    try {
-      await supabase.from('users').insert({
-        'id': user.id,
-        'email': user.email,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-    } catch (insertError, insertStack) {
-      print('Error creating user document: $insertError');
-      Sentry.captureException(insertError, stackTrace: insertStack);
-      rethrow;
-    }
+    await supabase.from('users').upsert({
+      'id': user.id,
+      'email': user.email,
+      'created_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'id', ignoreDuplicates: true);
+  } catch (e, stack) {
+    debugPrint('Error creating user document: $e');
+    Sentry.captureException(e, stackTrace: stack);
+    rethrow;
   }
 }
 
@@ -31,14 +22,9 @@ Future<AuthResponse?> signInWithEmailAndPassword(
   try {
     final response = await supabase.auth
         .signInWithPassword(email: email, password: password);
-    if (response.user != null) {
-      await createSupabaseUserDocument(response.user!);
-      // Log user into RevenueCat
-      await RevenueCatManager.setRevenueCatUser(response.user!.id);
-    }
     return response;
   } catch (e, stack) {
-    print('Email/password sign in error: $e');
+    debugPrint('Email/password sign in error: $e');
     Sentry.captureException(e, stackTrace: stack);
     rethrow;
   }
@@ -49,15 +35,9 @@ Future<AuthResponse?> signUpWithEmailAndPassword(
   try {
     final response =
         await supabase.auth.signUp(email: email, password: password);
-    // Only create user doc and set RevenueCat if we have a session
-    // (no session means email confirmation is required first)
-    if (response.user != null && response.session != null) {
-      await createSupabaseUserDocument(response.user!);
-      await RevenueCatManager.setRevenueCatUser(response.user!.id);
-    }
     return response;
   } catch (e, stack) {
-    print('Email/password sign up error: $e');
+    debugPrint('Email/password sign up error: $e');
     Sentry.captureException(e, stackTrace: stack);
     rethrow;
   }
@@ -67,7 +47,7 @@ Future<void> signOut() async {
   try {
     await supabase.auth.signOut();
   } catch (e, stack) {
-    print('Sign out error: $e');
+    debugPrint('Sign out error: $e');
     Sentry.captureException(e, stackTrace: stack);
     rethrow;
   }

@@ -194,18 +194,12 @@ class DeleteAccountButton extends StatelessWidget {
       await supabase.auth.signOut();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Account deleted successfully')),
-        );
-        
-        // Navigate to login screen
-        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
-        
-        // Call callback if provided
+        Navigator.of(context).pop(); // close the dialog
+        // AuthState listener handles navigation back to sign-in screen
         onAccountDeleted?.call();
       }
     } catch (e) {
-      print('Error deleting account: $e');
+      debugPrint('Error deleting account: $e');
       if (context.mounted) {
         _showError(context, 'Failed to delete account: $e');
       }
@@ -251,15 +245,16 @@ class DeleteAccountButton extends StatelessWidget {
     final csvData = <List<dynamic>>[];
     
     // Add headers
-    csvData.add(['Start Date', 'End Date', 'Miles/Km', 'Purpose', 'Notes']);
+    csvData.add(['Start Date', 'End Date', 'Miles/Km', 'Notes']);
     
     // Add mileage data
     for (final mileageItem in mileage) {
+      final miles = ((mileageItem['end_mileage'] ?? 0) as num) -
+          ((mileageItem['start_mileage'] ?? 0) as num);
       csvData.add([
         mileageItem['startDate']?.toString() ?? '',
         mileageItem['endDate']?.toString() ?? '',
-        mileageItem['miles']?.toString() ?? '',
-        mileageItem['purpose'] ?? '',
+        miles.toString(),
         mileageItem['notes'] ?? '',
       ]);
     }

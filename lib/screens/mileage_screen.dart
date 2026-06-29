@@ -12,7 +12,6 @@ class MileageScreen extends StatefulWidget {
 
 class MileageScreenState extends State<MileageScreen> {
   final supabase = Supabase.instance.client;
-  final User? _user = Supabase.instance.client.auth.currentUser;
 
   List<Map<String, dynamic>> mileages = [];
   TextEditingController startMileageController = TextEditingController();
@@ -31,8 +30,8 @@ class MileageScreenState extends State<MileageScreen> {
   }
 
   Future<void> loadMileages() async {
-    if (_user == null) return;
-    final user = _user;
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
     try {
       final response = await supabase
           .from('mileage')
@@ -46,7 +45,7 @@ class MileageScreenState extends State<MileageScreen> {
             .toList();
       });
     } catch (e) {
-      print("Error loading mileages: $e");
+      debugPrint("Error loading mileages: $e");
       setState(() {
         error = "Failed to load mileages. Please try again.";
       });
@@ -70,7 +69,8 @@ class MileageScreenState extends State<MileageScreen> {
   }
 
   Future<void> completeMileage() async {
-    if (_user == null) {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
       setState(() {
         error = "You must be logged in to submit mileage.";
       });
@@ -172,7 +172,7 @@ class MileageScreenState extends State<MileageScreen> {
       'end_mileage': endMileage,
       'start_date': selectedDate.toIso8601String(),
       'end_date': selectedDate.toIso8601String(),
-      'user_id': _user.id,
+      'user_id': user.id,
       'notes': notesController.text.isEmpty ? null : notesController.text,
       'created_at': DateTime.now().toIso8601String()
     };
@@ -193,7 +193,7 @@ class MileageScreenState extends State<MileageScreen> {
         SnackBar(content: Text("Mileage submitted successfully")),
       );
     } catch (e) {
-      print("Error submitting mileage: $e");
+      debugPrint("Error submitting mileage: $e");
       setState(() {
         error = "Failed to submit mileage. Please try again.";
       });
@@ -270,7 +270,7 @@ class MileageScreenState extends State<MileageScreen> {
           SnackBar(content: Text("Mileage deleted successfully")),
         );
       } catch (e) {
-        print("Error deleting mileage: $e");
+        debugPrint("Error deleting mileage: $e");
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to delete mileage. Please try again.")),
@@ -384,7 +384,7 @@ class MileageScreenState extends State<MileageScreen> {
                         context: context,
                         initialDate: selectedDate,
                         firstDate: DateTime(2000),
-                        lastDate: DateTime(2025),
+                        lastDate: DateTime.now().add(const Duration(days: 1)),
                       );
                       if (picked != null && picked != selectedDate) {
                         setState(() {

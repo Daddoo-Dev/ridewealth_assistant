@@ -48,7 +48,7 @@ class ProfileScreenState extends State<ProfileScreen> {
 
         var data = response;
         setState(() {
-          _nameController.text = data['name'] ?? '';
+          _nameController.text = data['display_name'] ?? data['name'] ?? '';
           _emailController.text = data['email'] ?? user.email ?? '';
           _phoneController.text = data['phone'] ?? '';
 
@@ -68,7 +68,7 @@ class ProfileScreenState extends State<ProfileScreen> {
           }
         });
       } catch (e) {
-        print("Error loading user profile: $e");
+        debugPrint("Error loading user profile: $e");
       }
     }
   }
@@ -86,6 +86,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               .from('users')
               .upsert({
             'id': user.id,
+            'display_name': _nameController.text.isEmpty ? null : _nameController.text,
             'name': _nameController.text.isEmpty ? null : _nameController.text,
             'phone': _phoneController.text,
             'address': fullAddress,
@@ -99,7 +100,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             SnackBar(content: Text('Profile updated successfully')),
           );
         } catch (e) {
-          print("Error updating profile: $e");
+          debugPrint("Error updating profile: $e");
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to update profile. Please try again.')),
