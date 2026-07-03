@@ -9,7 +9,7 @@ import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 
 import 'screens/main_screen.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/demo_screen.dart';
 import 'screens/web_signin_animation.dart';
 import 'environment.dart';
 import 'subscription_required.dart';
@@ -104,6 +104,19 @@ class AuthWrapper extends StatefulWidget {
 class AuthWrapperState extends State<AuthWrapper> {
   Future<bool>? _subscriptionFuture;
   String? _lastCheckedUserId;
+  bool? _hasSeenDemo;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      DemoScreen.hasSeenDemo().then((seen) {
+        if (mounted) setState(() => _hasSeenDemo = seen);
+      });
+    } else {
+      _hasSeenDemo = true; // no demo on web
+    }
+  }
 
   Future<bool> _getSubscriptionFuture(String userId) {
     if (_subscriptionFuture == null || _lastCheckedUserId != userId) {
@@ -144,6 +157,16 @@ class AuthWrapperState extends State<AuthWrapper> {
             },
           );
         } else {
+          if (_hasSeenDemo == null) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (_hasSeenDemo == false) {
+            return DemoScreen(
+              onComplete: () => setState(() => _hasSeenDemo = true),
+            );
+          }
           return AuthScreen();
         }
       },
@@ -151,26 +174,7 @@ class AuthWrapperState extends State<AuthWrapper> {
   }
 
   Widget _buildMainOrOnboarding() {
-    return FutureBuilder<bool>(
-      future: OnboardingScreen.hasSeenOnboarding(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final hasSeen = snapshot.data ?? false;
-
-        if (hasSeen) {
-          return MainScreen();
-        }
-
-        return OnboardingScreen(
-          onComplete: () => setState(() {}),
-        );
-      },
-    );
+    return MainScreen();
   }
 
   static const String _subscriptionCacheKey = 'rwa_subscription_active';
