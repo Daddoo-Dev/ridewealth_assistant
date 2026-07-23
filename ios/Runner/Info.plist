@@ -39,8 +39,10 @@
       <string>$(FLUTTER_BUILD_NUMBER)</string>
       <key>LSRequiresIPhoneOS</key>
       <true/>
+      <key>NSCameraUsageDescription</key>
+      <string>RideWealth Assistant uses the camera to scan receipts and prefill expense entries.</string>
       <key>NSPhotoLibraryUsageDescription</key>
-      <string>We may need to access your photos as image recognition improves for expense entry in the future.</string>
+      <string>RideWealth Assistant can read a receipt photo from your library to prefill an expense entry.</string>
       <key>UIApplicationSupportsIndirectInputEvents</key>
       <true/>
       <key>UILaunchStoryboardName</key>

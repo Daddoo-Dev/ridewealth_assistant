@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'widgets/store_download_badges.dart';
+import 'services/app_actions_service.dart';
 
 void main() async {
   await SentryFlutter.init(
@@ -42,6 +43,8 @@ void main() async {
         final initialUserId = currentSession?.user.id;
 
         await RevenueCatManager.initialize(initialUserId: initialUserId);
+
+        await AppActionsService.instance.init();
 
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,

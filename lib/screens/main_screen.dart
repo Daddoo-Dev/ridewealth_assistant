@@ -7,6 +7,7 @@ import 'tax_estimates.dart';
 import 'user_screen.dart';
 import '../revenuecat_manager.dart';
 import '../theme/app_themes.dart';
+import '../services/app_actions_service.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -30,6 +31,46 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _loadTrialStatus();
+    AppActionsService.instance.pendingMileageTabRequests
+        .addListener(_onMileageTabRequested);
+    AppActionsService.instance.pendingExpensesTabRequests
+        .addListener(_onExpensesTabRequested);
+    AppActionsService.instance.pendingFeedback.addListener(_onFeedback);
+  }
+
+  @override
+  void dispose() {
+    AppActionsService.instance.pendingMileageTabRequests
+        .removeListener(_onMileageTabRequested);
+    AppActionsService.instance.pendingExpensesTabRequests
+        .removeListener(_onExpensesTabRequested);
+    AppActionsService.instance.pendingFeedback.removeListener(_onFeedback);
+    super.dispose();
+  }
+
+  void _onMileageTabRequested() {
+    if (!mounted) return;
+    setState(() {
+      _selectedIndex = 1; // Mileage tab
+    });
+  }
+
+  void _onExpensesTabRequested() {
+    if (!mounted) return;
+    setState(() {
+      _selectedIndex = 3; // Expenses tab
+    });
+  }
+
+  void _onFeedback() {
+    final feedback = AppActionsService.instance.pendingFeedback.value;
+    if (feedback == null || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(feedback.message),
+        backgroundColor: feedback.isError ? AppThemes.errorColor : null,
+      ),
+    );
   }
 
   Future<void> _loadTrialStatus() async {

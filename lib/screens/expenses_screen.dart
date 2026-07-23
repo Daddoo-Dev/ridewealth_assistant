@@ -3,6 +3,9 @@ import '../theme/app_themes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
+import '../services/receipt_scan_service.dart';
+import '../services/expense_entry_service.dart';
+import '../widgets/receipt_capture_section.dart';
 
 class ExpensesScreen extends StatefulWidget {
   @override
@@ -81,6 +84,20 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         SnackBar(content: Text("Failed to load expenses. Please try again.")),
       );
     }
+  }
+
+  void _applyReceiptScan(ReceiptScanResult result) {
+    setState(() {
+      if (result.description != null) {
+        descriptionController.text = result.description!;
+      }
+      if (result.amount != null) {
+        amountController.text = result.amount!.toStringAsFixed(2);
+      }
+      if (result.date != null) {
+        selectedDate = result.date!;
+      }
+    });
   }
 
   Future<void> addExpense() async {
@@ -163,8 +180,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           });
           await loadExpenses();
         } else {
-          await supabase.from('expenses').insert(expenseData);
+          final result = await ExpenseEntryService.submit(
+            amount: cleanAmount,
+            description: descriptionController.text,
+            category: category,
+            date: localDate,
+            notes: notesController.text,
+          );
           if (!mounted) return;
+          if (!result.isSuccess) {
+            setState(() {
+              error = result.error!;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.error!)),
+            );
+            return;
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Expense added successfully")),
           );
@@ -329,6 +361,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SizedBox(height: 16),
+              if (editingExpense == null)
+                ReceiptCaptureSection(onScanned: _applyReceiptScan),
               TextField(
                 controller: amountController,
                 decoration:

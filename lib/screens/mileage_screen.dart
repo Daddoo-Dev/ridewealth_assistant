@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import '../services/mileage_entry_service.dart';
 
 class MileageScreen extends StatefulWidget {
   @override
@@ -69,17 +70,6 @@ class MileageScreenState extends State<MileageScreen> {
   }
 
   Future<void> completeMileage() async {
-    final user = supabase.auth.currentUser;
-    if (user == null) {
-      setState(() {
-        error = "You must be logged in to submit mileage.";
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("You must be logged in to submit mileage.")),
-      );
-      return;
-    }
     if (startMileageController.text.isEmpty || endMileageController.text.isEmpty) {
       setState(() {
         error = "Both start and end mileage must be entered to submit.";
@@ -90,22 +80,10 @@ class MileageScreenState extends State<MileageScreen> {
       );
       return;
     }
-    
-    // Validate date is not too far in the future
-    if (selectedDate.isAfter(DateTime.now().add(Duration(days: 1)))) {
-      setState(() {
-        error = "Date cannot be more than 1 day in the future.";
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Date cannot be more than 1 day in the future.")),
-      );
-      return;
-    }
-    
+
     int startMileage;
     int endMileage;
-    
+
     try {
       startMileage = int.parse(startMileageController.text);
       endMileage = int.parse(endMileageController.text);
@@ -119,67 +97,17 @@ class MileageScreenState extends State<MileageScreen> {
       );
       return;
     }
-    
-    // Validate positive numbers
-    if (startMileage < 0 || endMileage < 0) {
-      setState(() {
-        error = "Mileage cannot be negative.";
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Mileage cannot be negative.")),
-      );
-      return;
-    }
-    
-    // Validate reasonable mileage limits
-    if (startMileage > 999999 || endMileage > 999999) {
-      setState(() {
-        error = "Mileage values are unreasonably high.";
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Mileage values are unreasonably high.")),
-      );
-      return;
-    }
-    
-    if (endMileage <= startMileage) {
-      setState(() {
-        error = "End mileage must be greater than start mileage.";
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("End mileage must be greater than start mileage.")),
-      );
-      return;
-    }
-    
-    // Validate reasonable daily mileage
-    int totalMiles = endMileage - startMileage;
-    if (totalMiles > 1000) {
-      setState(() {
-        error = "Daily mileage over 1000 miles/km seems unreasonable. Please verify.";
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Daily mileage over 1000 miles/km seems unreasonable.")),
-      );
-      return;
-    }
-    Map<String, dynamic> mileageData = {
-      'start_mileage': startMileage,
-      'end_mileage': endMileage,
-      'start_date': selectedDate.toIso8601String(),
-      'end_date': selectedDate.toIso8601String(),
-      'user_id': user.id,
-      'notes': notesController.text.isEmpty ? null : notesController.text,
-      'created_at': DateTime.now().toIso8601String()
-    };
-    try {
-      await supabase.from('mileage').insert(mileageData);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('startMileage');
+
+    final result = await MileageEntryService.submit(
+      startMileage: startMileage,
+      endMileage: endMileage,
+      date: selectedDate,
+      notes: notesController.text,
+    );
+
+    if (!mounted) return;
+
+    if (result.isSuccess) {
       setState(() {
         startMileageController.clear();
         endMileageController.clear();
@@ -192,14 +120,12 @@ class MileageScreenState extends State<MileageScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Mileage submitted successfully")),
       );
-    } catch (e) {
-      debugPrint("Error submitting mileage: $e");
+    } else {
       setState(() {
-        error = "Failed to submit mileage. Please try again.";
+        error = result.error!;
       });
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to submit mileage. Please try again.")),
+        SnackBar(content: Text(result.error!)),
       );
     }
   }

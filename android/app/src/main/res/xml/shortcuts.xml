@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  App Actions capability for the "log a start mileage" voice command.
+  Feature-flagged off (Environment.enableAppActions = false) until there's a
+  car with Android Auto to validate the in-vehicle experience against.
+
+  Fulfillment reuses the app's existing verified deep-link scheme
+  (com.ridewealthassistant.app://, declared with autoVerify on MainActivity
+  in AndroidManifest.xml) rather than a new intent-filter.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <capability
+        android:name="custom.actions.intent.LOG_START_MILEAGE"
+        app:queryPatterns="@array/log_start_mileage_queries">
+        <intent>
+            <url-template android:value="com.ridewealthassistant.app://mileage/start{?mileage}" />
+            <parameter
+                android:name="mileage"
+                android:key="mileage"
+                android:mimeType="https://schema.org/Number" />
+        </intent>
+    </capability>
+
+    <capability
+        android:name="custom.actions.intent.LOG_END_MILEAGE"
+        app:queryPatterns="@array/log_end_mileage_queries">
+        <intent>
+            <url-template android:value="com.ridewealthassistant.app://mileage/end{?mileage}" />
+            <parameter
+                android:name="mileage"
+                android:key="mileage"
+                android:mimeType="https://schema.org/Number"
+                android:required="true" />
+        </intent>
+    </capability>
+
+    <capability
+        android:name="custom.actions.intent.LOG_EXPENSE"
+        app:queryPatterns="@array/log_expense_queries">
+        <intent>
+            <url-template android:value="com.ridewealthassistant.app://expenses/log{?amount,category}" />
+            <parameter
+                android:name="amount"
+                android:key="amount"
+                android:mimeType="https://schema.org/Number"
+                android:required="true" />
+            <parameter
+                android:name="category"
+                android:key="category"
+                android:mimeType="https://schema.org/Text" />
+        </intent>
+    </capability>
+
+</shortcuts>
