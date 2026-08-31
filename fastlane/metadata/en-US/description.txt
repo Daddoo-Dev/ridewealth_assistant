@@ -1,0 +1,35 @@
+Introducing Ridewealth Assistant: Your rideshare and gig economy business finance management app.
+Full access to the features below requires a paid subscription (in-app purchase) after a free trial.
+Managing expenses and taxes as a gig driver shouldn't be stressful. Ridewealth Assistant is the all-in-one app designed to simplify your financial tracking and tax preparation.
+Key Features:
+Income & Expense Tracking:
+Log daily income from any gig or rideshare source
+Record business expenses with easy categorization
+Monthly organization for quick review
+Mileage Tracker:
+Simple daily start/end odometer entry (miles or km)
+Automatic calculation of daily distance driven
+Smart Quarterly Tax Estimates:
+Real-time calculation of income, expenses, and mileage deductions
+Configurable mileage rate to match your country's tax authority
+Suggested quarterly estimated tax payment amounts
+Data Export:
+Export mileage, income, and expense records as CSV files
+Provide your accountant with organized financial data
+Secure Cloud Storage:
+Data stored securely with encrypted cloud infrastructure
+Access your data from any device
+User-Friendly Interface:
+Guided walkthrough for new users
+Dark and light mode with automatic system theme detection
+Clean, intuitive design for fast data entry
+Why Choose Ridewealth Assistant?
+Time-Saving: Spend less time on bookkeeping and more time earning
+Accuracy: Reduce errors in your tax calculations
+Peace of Mind: Stay organized and prepared for tax season year-round
+International-Friendly: Fully currency and unit neutral — track in any currency and distance unit, whether dollars and miles or kroner and kilometers
+Ridewealth Assistant works for gig drivers worldwide — all features are fully currency and distance-unit neutral.
+Start your 28-day free trial and take control of your gig business finances today.
+Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. Manage subscriptions in your device's account settings.
+Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://daddoodev.pro/privacy.

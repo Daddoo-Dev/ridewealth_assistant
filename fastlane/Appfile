@@ -1,0 +1,5 @@
+package_name("com.ridewealthassistant.app")
+app_identifier("com.ridewealthassistant.app")
+apple_id("6670771727")
+team_id("4D9DUT5BN5")
+json_key_file("fastlane/play-store.json")

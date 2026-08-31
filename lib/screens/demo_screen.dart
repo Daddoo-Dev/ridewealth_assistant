@@ -127,10 +127,12 @@ class _DemoScreenState extends State<DemoScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton(
+                    key: const Key('demo_skip_button'),
                     onPressed: _complete,
                     child: const Text('Skip'),
                   ),
                   ElevatedButton(
+                    key: const Key('demo_next_button'),
                     onPressed: _next,
                     child: Text(
                       _currentPage == _totalPages - 1
@@ -166,6 +168,7 @@ class _DemoScreenState extends State<DemoScreen> {
           ]),
           const SizedBox(height: 16),
           TextField(
+            key: const Key('demo_start_mileage_field'),
             controller: _startMileageController,
             decoration: AppThemes.getInputDecoration(context)
                 .copyWith(labelText: 'Start Mileage', hintText: 'e.g. 25432'),
@@ -223,6 +226,7 @@ class _DemoScreenState extends State<DemoScreen> {
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('demo_expense_desc_field'),
             controller: _expenseDescController,
             decoration: AppThemes.getInputDecoration(context)
                 .copyWith(labelText: 'Description', hintText: 'e.g. Conoco'),
@@ -230,6 +234,7 @@ class _DemoScreenState extends State<DemoScreen> {
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('demo_expense_amount_field'),
             controller: _expenseAmountController,
             decoration: AppThemes.getInputDecoration(context).copyWith(
               labelText: 'Amount',
@@ -286,6 +291,7 @@ class _DemoScreenState extends State<DemoScreen> {
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('demo_income_desc_field'),
             controller: _incomeDescController,
             decoration: AppThemes.getInputDecoration(context).copyWith(
                 labelText: 'Description', hintText: 'e.g. DoorDash'),
@@ -293,6 +299,7 @@ class _DemoScreenState extends State<DemoScreen> {
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('demo_income_amount_field'),
             controller: _incomeAmountController,
             decoration: AppThemes.getInputDecoration(context).copyWith(
               labelText: 'Amount',
@@ -343,6 +350,7 @@ class _DemoScreenState extends State<DemoScreen> {
           ),
           const SizedBox(height: 12),
           TextField(
+            key: const Key('demo_end_mileage_field'),
             controller: _endMileageController,
             decoration: AppThemes.getInputDecoration(context)
                 .copyWith(labelText: 'End Mileage', hintText: 'e.g. 25525'),

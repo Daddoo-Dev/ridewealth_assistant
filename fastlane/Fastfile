@@ -1,0 +1,43 @@
+default_platform(:android)
+
+platform :android do
+  desc "Upload phone/tablet screenshots to Google Play"
+  lane :screenshots do
+    upload_to_play_store(
+      package_name: "com.ridewealthassistant.app",
+      json_key: "fastlane/play-store.json",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false,
+      track: "production",
+      changes_not_sent_for_review: true
+    )
+  end
+end
+
+platform :ios do
+  desc "Upload screenshots to App Store Connect"
+  lane :screenshots do
+    api_key = app_store_connect_api_key(
+      key_id: "9GMNNY83TP",
+      issuer_id: "e7c75201-ec3c-4af6-92e6-79dd4a90fa78",
+      key_filepath: "fastlane/AuthKey_9GMNNY83TP.p8"
+    )
+    upload_to_app_store(
+      api_key: api_key,
+      app_identifier: "com.ridewealthassistant.app",
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_app_version_update: true,
+      skip_screenshots: false,
+      overwrite_screenshots: true,
+      force: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: false
+    )
+  end
+end

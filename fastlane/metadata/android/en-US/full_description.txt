@@ -1,0 +1,30 @@
+Ridewealth Assistant is built specifically for rideshare and delivery drivers — the 1099 workers who hustle across multiple gig platforms. Stop getting blindsided at tax time. Track your income, expenses, and mileage all year long and know exactly what you owe before the IRS asks.
+
+Income & Expense Tracking
+Log income from multiple gig platforms in one place
+Record business expenses organized by IRS expense categories
+See your net income at a glance, any time
+
+Mileage Tracker
+Simple daily start/end odometer entry
+Automatic daily mileage calculation
+IRS standard mileage rate deduction applied automatically
+
+Quarterly Tax Estimates
+Real-time estimated tax calculations based on your actual income and deductions
+Know your quarterly payment amount before each due date (April, June, September, January)
+Never be surprised by a tax bill again
+
+Annual Reports & Export
+Compile your full year's data into a clean annual report
+Export for tax filing or hand directly to your accountant
+Organized by IRS categories for easy filing
+
+Secure Cloud Storage
+Data encrypted in transit and at rest
+Access your data from any device
+
+Who is Ridewealth Assistant for?
+If you drive or deliver as your primary income or a side hustle — and you file a Schedule C — Ridewealth Assistant was built for you. No accounting degree required.
+
+Start your 30-day free trial today and go into every tax deadline knowing exactly where you stand.

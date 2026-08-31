@@ -78,3 +78,9 @@ uberdriver-*.json
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 signing/certificates/RWA02032027.mobileprovision
+
+# Fastlane store credentials (keep screenshots)
+*.p8
+fastlane/play-store.json
+fastlane/report.xml
+fastlane/README.md
