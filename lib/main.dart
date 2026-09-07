@@ -7,6 +7,7 @@ import 'theme/theme_provider.dart';
 import 'theme/app_themes.dart';
 import 'authmethod.dart';
 import 'revenuecat_manager.dart';
+import 'services/grace_period_service.dart';
 
 import 'screens/main_screen.dart';
 import 'screens/demo_screen.dart';
@@ -121,10 +122,10 @@ class AuthWrapperState extends State<AuthWrapper> {
     }
   }
 
-  Future<bool> _getSubscriptionFuture(String userId) {
-    if (_subscriptionFuture == null || _lastCheckedUserId != userId) {
-      _lastCheckedUserId = userId;
-      _subscriptionFuture = _checkSubscriptionStatus();
+  Future<bool> _getSubscriptionFuture(User user) {
+    if (_subscriptionFuture == null || _lastCheckedUserId != user.id) {
+      _lastCheckedUserId = user.id;
+      _subscriptionFuture = _checkAccess(user);
     }
     return _subscriptionFuture!;
   }
@@ -136,7 +137,7 @@ class AuthWrapperState extends State<AuthWrapper> {
         if (authState.user != null) {
           // Check subscription status before allowing access
           return FutureBuilder<bool>(
-            future: _getSubscriptionFuture(authState.user!.id),
+            future: _getSubscriptionFuture(authState.user!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Scaffold(
@@ -146,9 +147,9 @@ class AuthWrapperState extends State<AuthWrapper> {
                 );
               }
 
-              final hasSubscription = snapshot.data ?? false;
+              final hasAccess = snapshot.data ?? false;
 
-              if (hasSubscription) {
+              if (hasAccess) {
                 return _buildMainOrOnboarding();
               } else {
                 return SubscriptionRequiredScreen(
@@ -182,17 +183,22 @@ class AuthWrapperState extends State<AuthWrapper> {
 
   static const String _subscriptionCacheKey = 'rwa_subscription_active';
 
-  Future<bool> _checkSubscriptionStatus() async {
+  /// True if the user should get full access: either an active subscription
+  /// or trial, or they're still within the post-signup grace period that
+  /// lets a new user try the real app before the paywall interrupts them.
+  Future<bool> _checkAccess(User user) async {
     try {
       final isSubscribed = await RevenueCatManager.isSubscribed();
       final trialStatus = await RevenueCatManager.getTrialStatus();
-      final result = isSubscribed || (trialStatus['isInTrial'] == true);
+      final hasSubscription = isSubscribed || (trialStatus['isInTrial'] == true);
 
       // Persist so a network error does not lock out a paying user
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_subscriptionCacheKey, result);
+      await prefs.setBool(_subscriptionCacheKey, hasSubscription);
 
-      return result;
+      if (hasSubscription) return true;
+
+      return await GracePeriodService.hasAccess(user.createdAt);
     } catch (e, stack) {
       debugPrint('Error checking subscription status: $e');
       Sentry.captureException(e, stackTrace: stack);

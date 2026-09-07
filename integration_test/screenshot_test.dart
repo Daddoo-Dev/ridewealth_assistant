@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:ridewealth_assistant/main.dart' as app;
@@ -36,12 +35,11 @@ Future<void> _shot(WidgetTester tester, String name) async {
   await tester.pump(const Duration(milliseconds: 400));
 
   await tester.runAsync(() async {
-    final renderView = tester.binding.renderViews.first;
-    final layer = renderView.layer;
-    if (layer is! OffsetLayer) {
-      throw StateError('RenderView layer is $layer, expected OffsetLayer');
+    final root = tester.binding.rootElement;
+    if (root == null) {
+      throw StateError('No root element to capture for $name.png');
     }
-    final image = await layer.toImage(renderView.paintBounds);
+    final image = await captureImage(root);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     if (byteData == null) {
       throw StateError('Failed to encode $name.png');

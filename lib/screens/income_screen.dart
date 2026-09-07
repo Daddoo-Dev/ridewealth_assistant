@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_themes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import '../services/grace_period_service.dart';
 
 
 class IncomeScreen extends StatefulWidget {
@@ -142,6 +143,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
           await loadIncomes();
         } else {
           await supabase.from('income').insert(incomeData);
+          await GracePeriodService.recordUsage();
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Income added successfully")),

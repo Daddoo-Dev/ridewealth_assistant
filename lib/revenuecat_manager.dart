@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart'
     show debugPrint, kIsWeb, defaultTargetPlatform, TargetPlatform, kDebugMode;
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -77,7 +78,7 @@ class RevenueCatManager {
   static Future<bool> isSubscriptionActive() async {
     try {
       if (kIsWeb) {
-        return _checkSubscriptionStatusWeb();
+        return await _checkSubscriptionStatusWeb();
       }
       final customerInfo = await Purchases.getCustomerInfo();
       final isActive = customerInfo.entitlements.active.isNotEmpty;
@@ -109,6 +110,9 @@ class RevenueCatManager {
       final offerings = await Purchases.getOfferings();
       if (offerings.current == null) {
         debugPrint('No current offering available');
+        await Sentry.captureMessage(
+          'RevenueCat: no current offering available',
+        );
         return null;
       }
 
@@ -136,8 +140,9 @@ class RevenueCatManager {
         'identifier': currentOffering.identifier,
         'availablePackages': availablePackages,
       };
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error getting offerings: $e');
+      await Sentry.captureException(e, stackTrace: stack);
       return null;
     }
   }
@@ -153,10 +158,21 @@ class RevenueCatManager {
       }
 
       return await purchasePackageById(packageId);
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error purchasing subscription: $e');
+      if (!_isUserCancellation(e)) {
+        await Sentry.captureException(e, stackTrace: stack);
+      }
       rethrow;
     }
+  }
+
+  static bool _isUserCancellation(Object e) {
+    if (e is PlatformException) {
+      return PurchasesErrorHelper.getErrorCode(e) ==
+          PurchasesErrorCode.purchaseCancelledError;
+    }
+    return false;
   }
 
   /// Purchase a RevenueCat package by identifier (native store checkout).
@@ -165,6 +181,9 @@ class RevenueCatManager {
 
     final offerings = await Purchases.getOfferings();
     if (offerings.current == null) {
+      await Sentry.captureMessage(
+        'RevenueCat purchase blocked: no current offering available',
+      );
       throw Exception('No offerings available');
     }
 
@@ -177,11 +196,22 @@ class RevenueCatManager {
     }
 
     if (packageToPurchase == null) {
+      await Sentry.captureMessage(
+        'RevenueCat purchase blocked: package not found: $packageId',
+      );
       throw Exception('Package not found: $packageId');
     }
 
     final result = await Purchases.purchasePackage(packageToPurchase);
-    return result.customerInfo.entitlements.active.isNotEmpty;
+    final isActive = result.customerInfo.entitlements.active.isNotEmpty;
+    if (!isActive) {
+      // Store transaction completed but RevenueCat granted no entitlement -
+      // almost always a product/entitlement mapping issue in the dashboard.
+      await Sentry.captureMessage(
+        'RevenueCat purchase completed without an active entitlement: $packageId',
+      );
+    }
+    return isActive;
   }
 
   /// Restore purchases
@@ -193,8 +223,9 @@ class RevenueCatManager {
       final isActive = customerInfo.entitlements.active.isNotEmpty;
 
       return isActive;
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error restoring purchases: $e');
+      await Sentry.captureException(e, stackTrace: stack);
       return false;
     }
   }

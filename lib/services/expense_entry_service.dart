@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'grace_period_service.dart';
+
 /// Result of an [ExpenseEntryService.submit] call.
 class ExpenseSubmitResult {
   const ExpenseSubmitResult.success() : error = null;
@@ -63,6 +65,7 @@ abstract final class ExpenseEntryService {
 
     try {
       await Supabase.instance.client.from('expenses').insert(expenseData);
+      await GracePeriodService.recordUsage();
       return const ExpenseSubmitResult.success();
     } catch (e, stack) {
       debugPrint('Error adding expense: $e');

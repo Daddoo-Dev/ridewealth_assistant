@@ -5,6 +5,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'grace_period_service.dart';
+
 /// Result of a [MileageEntryService.submit] call.
 class MileageSubmitResult {
   const MileageSubmitResult.success(this.totalMiles) : error = null;
@@ -78,6 +80,7 @@ abstract final class MileageEntryService {
       await Supabase.instance.client.from('mileage').insert(mileageData);
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('startMileage');
+      await GracePeriodService.recordUsage();
       return MileageSubmitResult.success(totalMiles);
     } catch (e, stack) {
       debugPrint('Error submitting mileage: $e');

@@ -72,7 +72,7 @@ class ReceiptScanService {
       if (paths == null || paths.isEmpty) return ReceiptScanResult.empty;
 
       final bytes = await File(paths.first).readAsBytes();
-      return _recognizeAndParse(bytes);
+      return await _recognizeAndParse(bytes);
     } on PlatformException catch (e) {
       if (e.message == 'Operation cancelled') return ReceiptScanResult.empty;
       rethrow;
