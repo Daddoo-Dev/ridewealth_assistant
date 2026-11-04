@@ -33,6 +33,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+grant execute on function public.set_app_version() to authenticated, service_role;
+
 -- Create trigger to automatically set app_version
 CREATE TRIGGER trigger_set_app_version
     BEFORE INSERT ON error_tracking
@@ -71,6 +73,9 @@ CREATE POLICY "Service role can update errors" ON error_tracking
     FOR UPDATE USING (
         auth.role() = 'service_role'
     );
+
+grant select, insert on table public.error_tracking to authenticated;
+grant select, insert, update, delete on table public.error_tracking to service_role;
 
 -- Create a view for error analytics (only accessible by service role)
 CREATE VIEW error_analytics AS

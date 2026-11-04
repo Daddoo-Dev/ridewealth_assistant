@@ -202,7 +202,9 @@ class RevenueCatManager {
       throw Exception('Package not found: $packageId');
     }
 
-    final result = await Purchases.purchasePackage(packageToPurchase);
+    final result = await Purchases.purchase(
+      PurchaseParams.package(packageToPurchase),
+    );
     final isActive = result.customerInfo.entitlements.active.isNotEmpty;
     if (!isActive) {
       // Store transaction completed but RevenueCat granted no entitlement -
@@ -258,14 +260,9 @@ class RevenueCatManager {
       if (entitlement == null) return null;
       if (entitlement.periodType != PeriodType.trial) return null;
 
-      final dynamic expiration = entitlement.expirationDate;
-      DateTime? expirationDate;
-      if (expiration is DateTime) {
-        expirationDate = expiration;
-      } else if (expiration is String) {
-        expirationDate = DateTime.tryParse(expiration);
-      }
-
+      final expiration = entitlement.expirationDate;
+      if (expiration == null) return null;
+      final expirationDate = DateTime.tryParse(expiration);
       if (expirationDate == null) return null;
       final now = DateTime.now();
       final remaining = expirationDate.difference(now).inDays;
@@ -292,14 +289,9 @@ class RevenueCatManager {
         return {'isInTrial': false, 'daysRemaining': 0};
       }
 
-      final dynamic expiration = entitlement.expirationDate;
-      DateTime? expirationDate;
-      if (expiration is DateTime) {
-        expirationDate = expiration;
-      } else if (expiration is String) {
-        expirationDate = DateTime.tryParse(expiration);
-      }
-
+      final expiration = entitlement.expirationDate;
+      final expirationDate =
+          expiration == null ? null : DateTime.tryParse(expiration);
       if (expirationDate == null) {
         return {'isInTrial': false, 'daysRemaining': 0};
       }

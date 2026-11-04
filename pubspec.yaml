@@ -7,8 +7,8 @@ version: 1.0.35+35
 homepage: https://www.ridewealthassistant.com
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
-  flutter: ">=3.22.1"
+  sdk: ">=3.13.5 <4.0.0"
+  flutter: ">=3.47.7"
 
 dependencies:
   flutter:
@@ -16,7 +16,7 @@ dependencies:
   english_words:
   provider:
   shared_preferences: ^2.3.3
-  csv: ^7.1.0
+  csv: ^8.0.0
   http: ^1.1.2
   intl: ^0.20.2
   universal_html: ^2.2.4
@@ -28,12 +28,12 @@ dependencies:
   permission_handler: ^12.0.1
   supabase_flutter:
   connectivity_plus: ^7.0.0
-  dynamic_color: ^1.6.8
-  purchases_flutter: ^9.12.0
+  dynamic_color: ^2.1.0
+  purchases_flutter: ^11.0.0
   flutter_plugin_android_lifecycle: ^2.0.15
   flutter_svg: ^2.0.9
   sentry_flutter: ^9.13.0
-  app_links: ^6.4.0
+  app_links: ^7.2.2
   image_picker: ^1.1.2
   google_mlkit_document_scanner: ^0.4.1
   google_mlkit_text_recognition: ^0.15.0

@@ -57,8 +57,8 @@ RideWealth Assistant helps independent contractors manage their ride-share or de
 
 ## Requirements
 
-- Flutter SDK >= 3.4.0
-- Dart SDK >= 3.4.0
+- Flutter SDK >= 3.47.7
+- Dart SDK >= 3.13.5
 - iOS 13.0+ / Android (API 21+)
 - Supabase project with configured database tables
 - RevenueCat account for subscription management
