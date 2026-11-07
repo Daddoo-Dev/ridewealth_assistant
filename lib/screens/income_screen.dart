@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../theme/app_themes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import '../services/grace_period_service.dart';
+import '../money.dart';
+import '../services/income_entry_service.dart';
+import '../services/pending_entry_queue.dart';
+import '../services/user_settings.dart';
 
 
 class IncomeScreen extends StatefulWidget {
@@ -35,6 +38,9 @@ class _IncomeScreenState extends State<IncomeScreen> {
   void initState() {
     super.initState();
     loadIncomes();
+    UserSettings.load().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> loadIncomes() async {
@@ -47,16 +53,24 @@ class _IncomeScreenState extends State<IncomeScreen> {
           .eq('user_id', user.id)
           .order('date', ascending: false);
       
+      final remote = (response as List)
+          .map((doc) => Map<String, dynamic>.from(doc as Map))
+          .toList();
+      final merged = await PendingEntryQueue.merge('income', remote);
+      if (!mounted) return;
       setState(() {
-        incomes = (response as List)
-            .map((doc) => Map<String, dynamic>.from(doc as Map))
-            .toList();
+        incomes = merged;
         error = '';
       });
     } catch (e) {
       debugPrint("Error loading incomes: $e");
+      final merged = await PendingEntryQueue.merge('income', incomes);
+      if (!mounted) return;
       setState(() {
-        error = "Failed to load incomes. Please try again.";
+        incomes = merged;
+        error = merged.isEmpty
+            ? "Failed to load incomes. Please try again."
+            : "Couldn't refresh incomes. Entries saved on this phone are still listed.";
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -124,14 +138,30 @@ class _IncomeScreenState extends State<IncomeScreen> {
         };
 
         if (editingIncome != null) {
-          await supabase
-              .from('income')
-              .update(incomeData)
-              .eq('id', editingIncome!['id']);
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Income updated successfully")),
-          );
+          if (editingIncome!['pending_sync'] == true) {
+            await PendingEntryQueue.enqueue(PendingEntry(
+              id: editingIncome!['id'].toString(),
+              table: 'income',
+              payload: {
+                ...incomeData,
+                'id': editingIncome!['id'],
+                'created_at': editingIncome!['created_at'] ?? incomeData['created_at'],
+              },
+            ));
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(pendingSyncMessage)),
+            );
+          } else {
+            await supabase
+                .from('income')
+                .update(incomeData)
+                .eq('id', editingIncome!['id']);
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Income updated successfully")),
+            );
+          }
           setState(() {
             amountController.clear();
             descriptionController.clear();
@@ -142,11 +172,28 @@ class _IncomeScreenState extends State<IncomeScreen> {
           });
           await loadIncomes();
         } else {
-          await supabase.from('income').insert(incomeData);
-          await GracePeriodService.recordUsage();
+          final result = await IncomeEntryService.submit(
+            amount: cleanAmount,
+            description: descriptionController.text,
+            date: localDate,
+            notes: notesController.text,
+          );
           if (!mounted) return;
+          if (!result.isSuccess) {
+            setState(() {
+              error = result.error!;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(result.error!)),
+            );
+            return;
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Income added successfully")),
+            SnackBar(
+              content: Text(result.queued
+                  ? pendingSyncMessage
+                  : "Income added successfully"),
+            ),
           );
           setState(() {
             amountController.clear();
@@ -212,6 +259,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
     );
 
     if (confirmDelete == true) {
+      if (await PendingEntryQueue.deleteIfQueued(id)) {
+        await loadIncomes();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Income deleted successfully")),
+        );
+        return;
+      }
       try {
         await supabase.from('income').delete().eq('id', id);
         await loadIncomes();
@@ -411,13 +466,18 @@ class _IncomeScreenState extends State<IncomeScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Amount: \$${income['amount'].toStringAsFixed(2)}',
+                                          'Amount: ${Money.format((income['amount'] as num?) ?? 0)}',
                                           style: AppThemes.listTileAmount,
                                         ),
                                         Text(
                                           'Description: ${income['description']}',
                                           style: AppThemes.bodyMedium,
                                         ),
+                                        if (income['pending_sync'] == true)
+                                          Text(
+                                            'Waiting to sync',
+                                            style: AppThemes.bodyMedium,
+                                          ),
                                       ],
                                     ),
                                     trailing: Row(

@@ -682,7 +682,7 @@ class _DemoScreenState extends State<DemoScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Federal (15%):',
+                Text('Primary (15%):',
                     style: Theme.of(context).textTheme.bodyLarge),
                 Text('\$${federal.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.bodyLarge),
@@ -691,7 +691,7 @@ class _DemoScreenState extends State<DemoScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('State (5%):',
+                Text('Secondary (5%):',
                     style: Theme.of(context).textTheme.bodyLarge),
                 Text('\$${state.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.bodyLarge),

@@ -1,28 +1,10 @@
 import 'package:flutter/material.dart';
-import '../theme/app_themes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../mileage_rates.dart' as mileage_rates;
-
-class MileageCalculator {
-  List<mileage_rates.MileageRate> mileageRates = [];
-
-  MileageCalculator() {
-    mileageRates = mileage_rates.mileageRates;
-  }
-
-  double getMileageRate(DateTime date) {
-    for (var rate in mileageRates.reversed) {
-      if (date.isAfter(rate.startDate) ||
-          date.isAtSameMomentAs(rate.startDate)) {
-        return rate.rate;
-      }
-    }
-    debugPrint(
-        "Warning: No applicable rate found for date $date. Using most recent rate.");
-    return mileageRates.last.rate;
-  }
-}
+import '../ledger_math.dart';
+import '../money.dart';
+import '../services/user_settings.dart';
+import '../theme/app_themes.dart';
 
 class EstimatedTaxScreen extends StatefulWidget {
   @override
@@ -40,7 +22,11 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
 
   int federalRatePercentage = 15;
   int stateRatePercentage = 5;
-  int customMileageRateCents = 0;
+  String currencySymbol = r'$';
+  String currencyName = '';
+  bool symbolAfter = false;
+  String distanceUnit = 'km';
+  final TextEditingController distanceRateController = TextEditingController();
 
   bool applyMileageToState = true;
 
@@ -55,58 +41,68 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
     return result;
   }
 
-  final MileageCalculator mileageCalculator = MileageCalculator();
-
   @override
   void initState() {
     super.initState();
     loadUserRates();
   }
 
+  @override
+  void dispose() {
+    distanceRateController.dispose();
+    super.dispose();
+  }
+
   Future<void> loadUserRates() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user != null) {
-      try {
-        final response = await Supabase.instance.client
-            .from('users')
-            .select()
-            .eq('id', user.id)
-            .single();
-
-        var data = response;
-        setState(() {
-          federalRatePercentage = ((data['federalRate'] ?? 0.15) * 100).round();
-          stateRatePercentage = ((data['stateRate'] ?? 0.05) * 100).round();
-          customMileageRateCents = ((data['customMileageRate'] ??
-                      mileageCalculator.getMileageRate(DateTime.now())) *
-                  100)
-              .round();
-
-          federalRate = federalRatePercentage / 100;
-          stateRate = stateRatePercentage / 100;
-          customMileageRate = customMileageRateCents / 100;
-        });
-      } catch (e) {
-        debugPrint("Error loading user rates: $e");
-      }
+    try {
+      final settings = await UserSettings.load();
+      if (!mounted) return;
+      setState(() {
+        federalRate = settings.primaryRate;
+        stateRate = settings.secondaryRate;
+        federalRatePercentage = (settings.primaryRate * 100).round();
+        stateRatePercentage = (settings.secondaryRate * 100).round();
+        customMileageRate = settings.distanceRate;
+        currencySymbol = settings.currencySymbol;
+        currencyName = settings.currencyName;
+        symbolAfter = settings.symbolAfter;
+        distanceUnit = settings.distanceUnit;
+        applyMileageToState = settings.applyDistanceToSecondary;
+        distanceRateController.text = settings.distanceRate == 0
+            ? ''
+            : settings.distanceRate.toStringAsFixed(2);
+      });
+    } catch (e) {
+      debugPrint("Error loading user rates: $e");
     }
   }
 
-  Future<void> saveUserRates() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user != null) {
-      try {
-        await Supabase.instance.client
-            .from('users')
-            .upsert({
-          'id': user.id,
-          'federalRate': federalRate,
-          'stateRate': stateRate,
-          'customMileageRate': customMileageRate,
-        });
-      } catch (e) {
-        debugPrint("Error saving user rates: $e");
-      }
+  Future<bool> saveUserRates() async {
+    final parsed = parseDistanceRate(distanceRateController.text);
+    if (parsed == null) {
+      if (!mounted) return false;
+      setState(() {
+        error = 'Distance rate must be from 0 to 5.00.';
+      });
+      return false;
+    }
+    customMileageRate = parsed;
+    federalRate = federalRatePercentage / 100.0;
+    stateRate = stateRatePercentage / 100.0;
+    try {
+      await UserSettings.saveRates(
+        primaryRate: federalRate,
+        secondaryRate: stateRate,
+        distanceRate: customMileageRate,
+      );
+      if (!mounted) return true;
+      setState(() {
+        error = '';
+      });
+      return true;
+    } catch (e) {
+      debugPrint("Error saving user rates: $e");
+      return false;
     }
   }
 
@@ -129,12 +125,13 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
               _buildRateInputs(),
               SizedBox(height: 10),
               SwitchListTile(
-                title: Text('Apply mileage deduction to state tax'),
+                title: Text('Apply distance deduction to the secondary tax'),
                 value: applyMileageToState,
                 onChanged: (val) {
                   setState(() {
                     applyMileageToState = val;
                   });
+                  UserSettings.saveApplyDistanceToSecondary(val);
                   fetchData();
                 },
                 activeColor: AppThemes.primaryColor,
@@ -191,13 +188,22 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
   Widget _buildRateInputs() {
     final federalItems = List.generate(100, (index) => index + 1);
     final stateItems = List.generate(100, (index) => index + 1);
-    final mileageItems = List.generate(500, (index) => index + 1);
     return Column(
       children: [
+        Align(
+          alignment: Alignment.centerLeft,
+            child: Text(
+              currencyName.isEmpty
+                  ? 'Set your country on the account screen to choose a currency.'
+                  : 'Currency: $currencyName ($currencySymbol)',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+        ),
+        SizedBox(height: 10),
         DropdownButtonFormField<int>(
           value: federalItems.contains(federalRatePercentage) ? federalRatePercentage : null,
           decoration: InputDecoration(
-            labelText: 'Federal Tax Rate (%)',
+            labelText: 'Primary tax rate (%)',
             border: OutlineInputBorder(),
           ),
           items: federalItems.map((int value) {
@@ -212,8 +218,9 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
                 federalRatePercentage = newValue;
                 federalRate = newValue / 100;
               });
-              saveUserRates();
-              fetchData();
+              saveUserRates().then((saved) {
+                if (saved) fetchData();
+              });
             }
           },
         ),
@@ -221,7 +228,7 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
         DropdownButtonFormField<int>(
           value: stateItems.contains(stateRatePercentage) ? stateRatePercentage : null,
           decoration: InputDecoration(
-            labelText: 'State Tax Rate (%)',
+            labelText: 'Secondary tax rate (%)',
             border: OutlineInputBorder(),
           ),
           items: stateItems.map((int value) {
@@ -236,33 +243,25 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
                 stateRatePercentage = newValue;
                 stateRate = newValue / 100;
               });
-              saveUserRates();
-              fetchData();
+              saveUserRates().then((saved) {
+                if (saved) fetchData();
+              });
             }
           },
         ),
         SizedBox(height: 10),
-        DropdownButtonFormField<int>(
-          value: mileageItems.contains(customMileageRateCents) ? customMileageRateCents : null,
+        TextFormField(
+          controller: distanceRateController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: 'Mileage Rate (per unit)',
+            labelText: 'Distance rate (per ${distanceUnit == 'miles' ? 'mile' : distanceUnit})',
+            helperText: 'From 0.01 to 5.00. For example, 0.70 or 3.50.',
             border: OutlineInputBorder(),
           ),
-          items: mileageItems.map((int value) {
-            return DropdownMenuItem<int>(
-              value: value,
-              child: Text('$value'),
-            );
-          }).toList(),
-          onChanged: (int? newValue) {
-            if (newValue != null) {
-              setState(() {
-                customMileageRateCents = newValue;
-                customMileageRate = newValue / 100;
-              });
-              saveUserRates();
-              fetchData();
-            }
+          onEditingComplete: () {
+            saveUserRates().then((saved) {
+              if (saved) fetchData();
+            });
           },
         ),
       ],
@@ -326,8 +325,11 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
       // Calculate totals
       double totalIncome = income.fold(0.0, (total, item) => total + (item['amount'] ?? 0.0));
       double totalExpenses = expenses.fold(0.0, (total, item) => total + (item['amount'] ?? 0.0));
-      double totalMileageDeduction = _calculateMileageDeduction(mileage);
-      int miles = mileage.fold(0, (total, item) => total + (((item['end_mileage'] ?? 0) - (item['start_mileage'] ?? 0)) as int));
+      final mileageMaps = (mileage)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+      final miles = sumDistance(mileageMaps);
+      final totalMileageDeduction = miles * customMileageRate;
 
       setState(() {
         taxEstimates = {
@@ -358,38 +360,19 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
     };
   }
 
-  double _calculateMileageDeduction(List mileage) {
-    return mileage.fold(0.0, (total, entry) {
-      final startMileage = entry['start_mileage'] ?? 0;
-      final endMileage = entry['end_mileage'] ?? 0;
-      final miles = endMileage - startMileage;
-      final rate = customMileageRate > 0 ? customMileageRate : mileageCalculator.getMileageRate(DateTime.now());
-      return total + (miles * rate);
-    });
-  }
-
   Widget _buildTaxEstimates() {
     final miles = taxEstimates?['miles'] ?? 0;
-    final mileageDeduction = taxEstimates?['totalMileageDeduction'] ?? 0.0;
-    final totalIncome = taxEstimates?['totalIncome'] ?? 0.0;
-    final totalExpenses = taxEstimates?['totalExpenses'] ?? 0.0;
-
-    // Conservative: No deductions
-    final conservativeBase = totalIncome;
-    final conservativeFederal = conservativeBase * federalRate;
-    final conservativeState = conservativeBase * stateRate;
-
-    // Moderate: Subtract expenses
-    final moderateBase = totalIncome - totalExpenses;
-    final moderateFederal = moderateBase * federalRate;
-    final moderateState = moderateBase * stateRate;
-
-    // Aggressive: Subtract expenses and mileage deduction
-    final aggressiveBase = totalIncome - totalExpenses - mileageDeduction;
-    final aggressiveFederal = aggressiveBase * federalRate;
-    final aggressiveState = (applyMileageToState
-        ? aggressiveBase
-        : totalIncome - totalExpenses) * stateRate;
+    final totalIncome = (taxEstimates?['totalIncome'] ?? 0.0) as num;
+    final totalExpenses = (taxEstimates?['totalExpenses'] ?? 0.0) as num;
+    final estimate = SetAsideEstimate.compute(
+      income: totalIncome.toDouble(),
+      expenses: totalExpenses.toDouble(),
+      distance: miles is int ? miles : (miles as num).round(),
+      distanceRate: customMileageRate,
+      primaryRate: federalRate,
+      secondaryRate: stateRate,
+      applyDistanceToSecondary: applyMileageToState,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,29 +383,29 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
         ),
         SizedBox(height: 8),
         _buildEstimateBlock(
-          label: 'Conservative',
+          label: 'Income only',
           formula: 'No deductions',
-          federal: conservativeFederal,
-          state: conservativeState,
-          base: conservativeBase,
+          federal: estimate.onIncome.primary,
+          state: estimate.onIncome.secondary,
+          base: estimate.onIncome.base,
         ),
         SizedBox(height: 8),
         _buildEstimateBlock(
-          label: 'Moderate',
-          formula: 'Income - Expenses',
-          federal: moderateFederal,
-          state: moderateState,
-          base: moderateBase,
+          label: 'After expenses',
+          formula: 'Income − expenses',
+          federal: estimate.afterExpenses.primary,
+          state: estimate.afterExpenses.secondary,
+          base: estimate.afterExpenses.base,
         ),
         SizedBox(height: 8),
         _buildEstimateBlock(
-          label: 'Aggressive',
-          formula: 'Income - Expenses - Mileage Deduction',
-          federal: aggressiveFederal,
-          state: aggressiveState,
-          base: aggressiveBase,
-          miles: miles,
-          mileageDeduction: mileageDeduction,
+          label: 'After expenses and distance',
+          formula: 'Income − expenses − distance',
+          federal: estimate.afterDistance.primary,
+          state: estimate.afterDistance.secondary,
+          base: estimate.afterDistance.base,
+          miles: miles is int ? miles : (miles as num).round(),
+          mileageDeduction: estimate.distanceDeduction,
         ),
       ],
     );
@@ -448,22 +431,24 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
             Text(label, style: Theme.of(context).textTheme.titleMedium),
             Text(formula, style: Theme.of(context).textTheme.bodySmall),
             SizedBox(height: 8),
-            Text('Taxable Base: ${base.toStringAsFixed(2)}'),
+            Text('Taxable base: ${Money.format(base, currencySymbol, symbolAfter)}'),
             if (miles > 0)
-              Text('Mileage Deduction: $miles miles/km (${mileageDeduction.toStringAsFixed(2)})'),
+              Text(
+                'Distance deduction: $miles $distanceUnit (${Money.format(mileageDeduction, currencySymbol, symbolAfter)})',
+              ),
             SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Federal Tax:', style: Theme.of(context).textTheme.bodyLarge),
-                Text(' ${federal.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Primary tax:', style: Theme.of(context).textTheme.bodyLarge),
+                Text(Money.format(federal, currencySymbol, symbolAfter), style: Theme.of(context).textTheme.bodyLarge),
               ],
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('State Tax:', style: Theme.of(context).textTheme.bodyLarge),
-                Text(' ${state.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Secondary tax:', style: Theme.of(context).textTheme.bodyLarge),
+                Text(Money.format(state, currencySymbol, symbolAfter), style: Theme.of(context).textTheme.bodyLarge),
               ],
             ),
           ],
@@ -485,8 +470,9 @@ class EstimatedTaxScreenState extends State<EstimatedTaxScreen> {
             ),
             SizedBox(height: 16),
             Text(
-              'This calculator provides estimates based on your current tax rates and mileage rates. '
-              'Actual tax obligations may vary. Please consult with a tax professional for accurate tax planning.',
+              'Primary and secondary are the two rates you set. The distance rate is an amount per mile or kilometer, from 0.01 to 5.00. '
+              'If fuel, insurance, or repairs are already in your expenses, do not also count that distance in the third figure. '
+              'These are set-aside estimates. A tax professional files the return.',
               style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
             ),
           ],

@@ -6,8 +6,11 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../environment.dart';
+import '../money.dart';
 import 'expense_entry_service.dart';
 import 'mileage_entry_service.dart';
+import 'pending_entry_queue.dart';
+import 'user_settings.dart';
 
 /// A confirmation/error message to surface after a voice command runs with
 /// no screen in front of the user. [id] is a monotonic counter so repeated
@@ -153,8 +156,11 @@ class AppActionsService {
       date: stored.date,
     );
 
-    if (result.isSuccess) {
-      _emitFeedback('Trip logged: ${result.totalMiles} miles.', isError: false);
+    if (result.queued) {
+      _emitFeedback(pendingSyncMessage, isError: false);
+    } else if (result.isSuccess) {
+      final settings = await UserSettings.load();
+      _emitFeedback('Trip logged: ${result.totalMiles} ${settings.distanceUnit}.', isError: false);
     } else {
       _emitFeedback("Couldn't save mileage: ${result.error}", isError: true);
     }
@@ -182,8 +188,14 @@ class AppActionsService {
       date: DateTime.now(),
     );
 
-    if (result.isSuccess) {
-      _emitFeedback('Expense logged: \$${amount.toStringAsFixed(2)} ($category).', isError: false);
+    if (result.queued) {
+      _emitFeedback(pendingSyncMessage, isError: false);
+    } else if (result.isSuccess) {
+      await UserSettings.load();
+      _emitFeedback(
+        'Expense logged: ${Money.format(amount)} ($category).',
+        isError: false,
+      );
     } else {
       _emitFeedback("Couldn't save expense: ${result.error}", isError: true);
     }

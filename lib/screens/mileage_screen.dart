@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import '../services/mileage_entry_service.dart';
+import '../services/pending_entry_queue.dart';
+import '../services/user_settings.dart';
 
 class MileageScreen extends StatefulWidget {
   @override
@@ -20,6 +22,7 @@ class MileageScreenState extends State<MileageScreen> {
   TextEditingController notesController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   String error = "";
+  String distanceUnit = 'km';
   bool showTransactions = false;
   Map<String, dynamic>? editingMileage;
 
@@ -28,6 +31,9 @@ class MileageScreenState extends State<MileageScreen> {
     super.initState();
     loadMileages();
     loadStoredStartMileage();
+    UserSettings.load().then((settings) {
+      if (mounted) setState(() => distanceUnit = settings.distanceUnit);
+    });
   }
 
   Future<void> loadMileages() async {
@@ -40,15 +46,23 @@ class MileageScreenState extends State<MileageScreen> {
           .eq('user_id', user.id)
           .order('start_date', ascending: false);
       
+      final remote = (response as List)
+          .map((doc) => Map<String, dynamic>.from(doc as Map))
+          .toList();
+      final merged = await PendingEntryQueue.merge('mileage', remote);
+      if (!mounted) return;
       setState(() {
-        mileages = (response as List)
-            .map((doc) => Map<String, dynamic>.from(doc as Map))
-            .toList();
+        mileages = merged;
       });
     } catch (e) {
       debugPrint("Error loading mileages: $e");
+      final merged = await PendingEntryQueue.merge('mileage', mileages);
+      if (!mounted) return;
       setState(() {
-        error = "Failed to load mileages. Please try again.";
+        mileages = merged;
+        error = merged.isEmpty
+            ? "Failed to load mileages. Please try again."
+            : "Couldn't refresh mileage. Entries saved on this phone are still listed.";
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,7 +132,11 @@ class MileageScreenState extends State<MileageScreen> {
       await loadMileages();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Mileage submitted successfully")),
+        SnackBar(
+          content: Text(result.queued
+              ? pendingSyncMessage
+              : "Mileage submitted successfully"),
+        ),
       );
     } else {
       setState(() {
@@ -187,6 +205,15 @@ class MileageScreenState extends State<MileageScreen> {
         false;
 
     if (confirm) {
+      if (await PendingEntryQueue.deleteIfQueued(id)) {
+        if (!mounted) return;
+        await loadMileages();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Mileage deleted successfully")),
+        );
+        return;
+      }
       try {
         await supabase.from('mileage').delete().eq('id', id);
         if (!mounted) return;
@@ -364,17 +391,22 @@ class MileageScreenState extends State<MileageScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Start: ${mileage['start_mileage']} miles/km',
+                                        'Start: ${mileage['start_mileage']} $distanceUnit',
                                         style: AppThemes.bodyMedium,
                                       ),
                                       Text(
-                                        'End: ${mileage['end_mileage']} miles/km',
+                                        'End: ${mileage['end_mileage']} $distanceUnit',
                                         style: AppThemes.bodyMedium,
                                       ),
                                       Text(
-                                        'Total: ${mileage['end_mileage'] - mileage['start_mileage']} miles/km',
+                                        'Total: ${mileage['end_mileage'] - mileage['start_mileage']} $distanceUnit',
                                         style: AppThemes.listTileAmount,
                                       ),
+                                      if (mileage['pending_sync'] == true)
+                                        Text(
+                                          'Waiting to sync',
+                                          style: AppThemes.bodyMedium,
+                                        ),
                                     ],
                                   ),
                                   trailing: Row(

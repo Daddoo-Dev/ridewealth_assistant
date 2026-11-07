@@ -3,13 +3,16 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'grace_period_service.dart';
+import 'remote_insert.dart';
 
 /// Result of an [ExpenseEntryService.submit] call.
 class ExpenseSubmitResult {
-  const ExpenseSubmitResult.success() : error = null;
-  const ExpenseSubmitResult.failure(this.error);
+  const ExpenseSubmitResult.saved() : error = null, queued = false;
+  const ExpenseSubmitResult.queued() : error = null, queued = true;
+  const ExpenseSubmitResult.failure(this.error) : queued = false;
 
   final String? error;
+  final bool queued;
 
   bool get isSuccess => error == null;
 }
@@ -64,9 +67,11 @@ abstract final class ExpenseEntryService {
     };
 
     try {
-      await Supabase.instance.client.from('expenses').insert(expenseData);
+      final result =
+          await RemoteInsert.insert(table: 'expenses', row: expenseData);
       await GracePeriodService.recordUsage();
-      return const ExpenseSubmitResult.success();
+      if (result.queued) return const ExpenseSubmitResult.queued();
+      return const ExpenseSubmitResult.saved();
     } catch (e, stack) {
       debugPrint('Error adding expense: $e');
       Sentry.captureException(e, stackTrace: stack);

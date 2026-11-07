@@ -6,6 +6,7 @@ import 'expenses_screen.dart';
 import 'tax_estimates.dart';
 import 'user_screen.dart';
 import '../revenuecat_manager.dart';
+import '../services/pending_entry_queue.dart';
 import '../theme/app_themes.dart';
 import '../services/app_actions_service.dart';
 
@@ -92,7 +93,24 @@ class MainScreenState extends State<MainScreen> {
       appBar: AppThemes.buildAppBar(context, 'RideWealth Assistant'),
       body: Column(
         children: [
-          // Trial status banner
+          ValueListenableBuilder<int>(
+            valueListenable: PendingEntryQueue.count,
+            builder: (context, pendingCount, _) {
+              if (pendingCount == 0) return const SizedBox.shrink();
+              final label = pendingCount == 1
+                  ? '1 entry is saved on this phone and waiting to sync.'
+                  : '$pendingCount entries are saved on this phone and waiting to sync.';
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              );
+            },
+          ),
           if (_trialStatus != null && _trialStatus!['isInTrial'] == true)
             Container(
               width: double.infinity,

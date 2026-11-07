@@ -5,15 +5,25 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../mileage_rules.dart';
 import 'grace_period_service.dart';
+import 'remote_insert.dart';
 
 /// Result of a [MileageEntryService.submit] call.
 class MileageSubmitResult {
-  const MileageSubmitResult.success(this.totalMiles) : error = null;
-  const MileageSubmitResult.failure(this.error) : totalMiles = null;
+  const MileageSubmitResult.saved(this.totalMiles)
+      : error = null,
+        queued = false;
+  const MileageSubmitResult.queued(this.totalMiles)
+      : error = null,
+        queued = true;
+  const MileageSubmitResult.failure(this.error)
+      : totalMiles = null,
+        queued = false;
 
   final int? totalMiles;
   final String? error;
+  final bool queued;
 
   bool get isSuccess => error == null;
 }
@@ -37,34 +47,16 @@ abstract final class MileageEntryService {
       );
     }
 
-    if (date.isAfter(DateTime.now().add(const Duration(days: 1)))) {
-      return const MileageSubmitResult.failure(
-        'Date cannot be more than 1 day in the future.',
-      );
-    }
-
-    if (startMileage < 0 || endMileage < 0) {
-      return const MileageSubmitResult.failure('Mileage cannot be negative.');
-    }
-
-    if (startMileage > 999999 || endMileage > 999999) {
-      return const MileageSubmitResult.failure(
-        'Mileage values are unreasonably high.',
-      );
-    }
-
-    if (endMileage <= startMileage) {
-      return const MileageSubmitResult.failure(
-        'End mileage must be greater than start mileage.',
-      );
+    final ruleError = MileageRules.validate(
+      startMileage: startMileage,
+      endMileage: endMileage,
+      date: date,
+    );
+    if (ruleError != null) {
+      return MileageSubmitResult.failure(ruleError);
     }
 
     final totalMiles = endMileage - startMileage;
-    if (totalMiles > 1000) {
-      return const MileageSubmitResult.failure(
-        'Daily mileage over 1000 miles/km seems unreasonable. Please verify.',
-      );
-    }
 
     final mileageData = {
       'start_mileage': startMileage,
@@ -77,11 +69,13 @@ abstract final class MileageEntryService {
     };
 
     try {
-      await Supabase.instance.client.from('mileage').insert(mileageData);
+      final result =
+          await RemoteInsert.insert(table: 'mileage', row: mileageData);
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('startMileage');
       await GracePeriodService.recordUsage();
-      return MileageSubmitResult.success(totalMiles);
+      if (result.queued) return MileageSubmitResult.queued(totalMiles);
+      return MileageSubmitResult.saved(totalMiles);
     } catch (e, stack) {
       debugPrint('Error submitting mileage: $e');
       Sentry.captureException(e, stackTrace: stack);

@@ -9,6 +9,7 @@ import 'authmethod.dart';
 import 'revenuecat_manager.dart';
 import 'services/grace_period_service.dart';
 
+import 'screens/locality_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/demo_screen.dart';
 import 'screens/web_signin_animation.dart';
@@ -20,6 +21,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'widgets/store_download_badges.dart';
 import 'services/app_actions_service.dart';
+import 'services/entry_sync.dart';
+import 'services/user_settings.dart';
 
 void main() async {
   await SentryFlutter.init(
@@ -46,6 +49,13 @@ void main() async {
         await RevenueCatManager.initialize(initialUserId: initialUserId);
 
         await AppActionsService.instance.init();
+
+        try {
+          await EntrySync.start();
+        } catch (e, stack) {
+          debugPrint('Entry sync failed to start: $e');
+          await Sentry.captureException(e, stackTrace: stack);
+        }
 
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,
@@ -109,6 +119,8 @@ class AuthWrapperState extends State<AuthWrapper> {
   Future<bool>? _subscriptionFuture;
   String? _lastCheckedUserId;
   bool? _hasSeenDemo;
+  Future<bool>? _countryFuture;
+  String? _countryUserId;
 
   @override
   void initState() {
@@ -150,7 +162,7 @@ class AuthWrapperState extends State<AuthWrapper> {
               final hasAccess = snapshot.data ?? false;
 
               if (hasAccess) {
-                return _buildMainOrOnboarding();
+                return _buildCountryOrMain(authState.user!.id);
               } else {
                 return SubscriptionRequiredScreen(
                   onSubscriptionMaybeChanged: () => setState(() {
@@ -177,8 +189,27 @@ class AuthWrapperState extends State<AuthWrapper> {
     );
   }
 
-  Widget _buildMainOrOnboarding() {
-    return MainScreen();
+  Widget _buildCountryOrMain(String userId) {
+    if (_countryFuture == null || _countryUserId != userId) {
+      _countryUserId = userId;
+      _countryFuture = UserSettings.hasCountry();
+    }
+    return FutureBuilder<bool>(
+      future: _countryFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.data == true) return MainScreen();
+        return LocalityScreen(
+          onSaved: () => setState(() {
+            _countryFuture = Future.value(true);
+          }),
+        );
+      },
+    );
   }
 
   static const String _subscriptionCacheKey = 'rwa_subscription_active';

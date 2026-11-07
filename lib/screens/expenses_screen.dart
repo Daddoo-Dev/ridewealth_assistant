@@ -4,7 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
 import '../services/receipt_scan_service.dart';
+import '../money.dart';
 import '../services/expense_entry_service.dart';
+import '../services/pending_entry_queue.dart';
+import '../services/user_settings.dart';
 import '../widgets/receipt_capture_section.dart';
 
 class ExpensesScreen extends StatefulWidget {
@@ -56,6 +59,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   void initState() {
     super.initState();
     loadExpenses();
+    UserSettings.load().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> loadExpenses() async {
@@ -68,16 +74,24 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           .eq('user_id', user.id)
           .order('date', ascending: false);
       
+      final remote = (response as List)
+          .map((doc) => Map<String, dynamic>.from(doc as Map))
+          .toList();
+      final merged = await PendingEntryQueue.merge('expenses', remote);
+      if (!mounted) return;
       setState(() {
-        expenses = (response as List)
-            .map((doc) => Map<String, dynamic>.from(doc as Map))
-            .toList();
+        expenses = merged;
         error = '';
       });
     } catch (e) {
       debugPrint("Error loading expenses: $e");
+      final merged = await PendingEntryQueue.merge('expenses', expenses);
+      if (!mounted) return;
       setState(() {
-        error = "Failed to load expenses. Please try again.";
+        expenses = merged;
+        error = merged.isEmpty
+            ? "Failed to load expenses. Please try again."
+            : "Couldn't refresh expenses. Entries saved on this phone are still listed.";
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -161,14 +175,31 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         };
 
         if (editingExpense != null) {
-          await supabase
-              .from('expenses')
-              .update(expenseData)
-              .eq('id', editingExpense!['id']);
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Expense updated successfully")),
-          );
+          if (editingExpense!['pending_sync'] == true) {
+            await PendingEntryQueue.enqueue(PendingEntry(
+              id: editingExpense!['id'].toString(),
+              table: 'expenses',
+              payload: {
+                ...expenseData,
+                'id': editingExpense!['id'],
+                'created_at':
+                    editingExpense!['created_at'] ?? expenseData['created_at'],
+              },
+            ));
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(pendingSyncMessage)),
+            );
+          } else {
+            await supabase
+                .from('expenses')
+                .update(expenseData)
+                .eq('id', editingExpense!['id']);
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Expense updated successfully")),
+            );
+          }
           setState(() {
             amountController.clear();
             descriptionController.clear();
@@ -198,7 +229,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             return;
           }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Expense added successfully")),
+            SnackBar(
+              content: Text(result.queued
+                  ? pendingSyncMessage
+                  : "Expense added successfully"),
+            ),
           );
           setState(() {
             amountController.clear();
@@ -266,6 +301,14 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
 
     if (confirmDelete == true) {
+      if (await PendingEntryQueue.deleteIfQueued(id)) {
+        await loadExpenses();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Expense deleted successfully")),
+        );
+        return;
+      }
       try {
         await supabase.from('expenses').delete().eq('id', id);
         await loadExpenses();
@@ -508,7 +551,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Amount: \$${expense['amount'].toStringAsFixed(2)}',
+                                      'Amount: ${Money.format((expense['amount'] as num?) ?? 0)}',
                                       style: AppThemes.listTileAmount,
                                     ),
                                     Text(
@@ -519,6 +562,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                       'Category: ${expense['category']}',
                                       style: Theme.of(context).textTheme.bodyMedium,
                                     ),
+                                    if (expense['pending_sync'] == true)
+                                      Text(
+                                        'Waiting to sync',
+                                        style: Theme.of(context).textTheme.bodyMedium,
+                                      ),
                                   ],
                                 ),
                                 trailing: Row(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../delete_account_button.dart';
+import '../localities.dart';
+import '../screens/locality_screen.dart';
+import '../services/user_settings.dart';
 import '../theme/app_themes.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,11 +20,13 @@ class ProfileScreenState extends State<ProfileScreen> {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
   final _zipController = TextEditingController();
+  Locality? _locality;
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
+    _loadCountry();
   }
 
   @override
@@ -34,6 +39,20 @@ class ProfileScreenState extends State<ProfileScreen> {
     _stateController.dispose();
     _zipController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCountry() async {
+    final code = await UserSettings.storedCountryCode();
+    if (!mounted) return;
+    setState(() => _locality = Localities.byCode(code));
+  }
+
+  Future<void> _changeCountry() async {
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (context) => const LocalityScreen()),
+    );
+    if (saved == true) await _loadCountry();
   }
 
   Future<void> _loadUserProfile() async {
@@ -121,6 +140,21 @@ class ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                _locality == null
+                    ? 'Country is not set.'
+                    : '${_locality!.countryName}: ${_locality!.currencyName} (${_locality!.symbol}), ${_locality!.distanceWord}',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _changeCountry,
+                  child: Text('Change country'),
+                ),
+              ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(labelText: 'Name'),

@@ -9,8 +9,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import '../ledger_math.dart';
+import '../services/user_settings.dart';
 import '../theme/app_themes.dart';
-import '../mileage_rates.dart' as mileage_rates;
 
 class ExportScreen extends StatefulWidget {
   @override
@@ -94,7 +95,14 @@ class ExportScreenState extends State<ExportScreen> {
       final expenses = await fetchExpenses();
       final income = await fetchIncome();
       final mileage = await fetchMileage();
-      final exportData = generateExportData(expenses, income, mileage);
+      final settings = await UserSettings.load();
+      final exportData = buildFinancialExportRows(
+        expenses: expenses,
+        income: income,
+        mileage: mileage,
+        distanceRate: settings.distanceRate,
+        expenseCategories: expenseCategories,
+      );
       await openCsvRows(exportData, 'export_data.csv');
     } catch (err) {
       setState(() {
@@ -208,87 +216,6 @@ class ExportScreenState extends State<ExportScreen> {
     "Estimated Tax Payment",
     "Other expenses"
   ];
-
-  List<List<dynamic>> generateExportData(
-      List<Map<String, dynamic>> expenses,
-      List<Map<String, dynamic>> income,
-      List<Map<String, dynamic>> mileage) {
-    double totalIncome = income.fold(0.0, (total, item) => total + ((item['amount'] ?? 0) as num).toDouble());
-    double totalExpenses = expenses.fold(0.0, (total, item) => total + ((item['amount'] ?? 0) as num).toDouble());
-    double mileageDeduction = _calculateMileageDeduction(mileage);
-    double netIncome = totalIncome - totalExpenses - mileageDeduction;
-
-    // Calculate totals by category
-    Map<String, double> categoryTotals = {};
-    double estimatedTaxPaymentIRS = 0.0;
-    double estimatedTaxPaymentState = 0.0;
-    
-    for (var category in expenseCategories) {
-      categoryTotals[category] = 0.0;
-    }
-    
-    for (var expense in expenses) {
-      String category = expense['category'] ?? 'Other expenses';
-      double amount = ((expense['amount'] ?? 0) as num).toDouble();
-      
-      if (category == 'Estimated Tax Payment') {
-        // Try to determine if it's IRS or State based on description
-        String description = (expense['description'] ?? '').toString().toLowerCase();
-        if (description.contains('state') || description.contains('state tax')) {
-          estimatedTaxPaymentState += amount;
-        } else {
-          // Default to IRS if not clearly marked as state
-          estimatedTaxPaymentIRS += amount;
-        }
-      } else {
-        categoryTotals[category] = (categoryTotals[category] ?? 0.0) + amount;
-      }
-    }
-
-    // Build CSV rows
-    List<List<dynamic>> rows = [];
-    
-    // Summary section
-    rows.add(['Total Income', totalIncome.toStringAsFixed(2)]);
-    rows.add(['Total Expenses', totalExpenses.toStringAsFixed(2)]);
-    rows.add(['Total Mileage Deduction', mileageDeduction.toStringAsFixed(2)]);
-    rows.add(['Net Income', netIncome.toStringAsFixed(2)]);
-    rows.add([]); // Empty row for spacing
-    
-    // Expense Categories section
-    rows.add(['Expense Categories']);
-    for (var category in expenseCategories) {
-      if (category != 'Estimated Tax Payment') {
-        double total = categoryTotals[category] ?? 0.0;
-        rows.add([category, total.toStringAsFixed(2)]);
-      }
-    }
-    rows.add([]); // Empty row for spacing
-    
-    // Estimated Payments section
-    rows.add(['Estimated Payments to IRS', estimatedTaxPaymentIRS.toStringAsFixed(2)]);
-    rows.add(['Estimated Payments to State', estimatedTaxPaymentState.toStringAsFixed(2)]);
-    
-    return rows;
-  }
-
-  double _calculateMileageDeduction(List<Map<String, dynamic>> mileage) {
-    return mileage.fold(0.0, (total, entry) {
-      final int miles = (entry['end_mileage'] ?? 0) - (entry['start_mileage'] ?? 0);
-      // entry['start_date'] is already a DateTime (parsed in fetchMileage)
-      final DateTime date = entry['start_date'] is DateTime
-          ? entry['start_date'] as DateTime
-          : DateTime.now();
-      double rate = mileage_rates.mileageRates.last.rate;
-      for (final r in mileage_rates.mileageRates.reversed) {
-        if (!date.isBefore(r.startDate)) {
-          rate = r.rate;
-          break;
-        }
-      }
-      return total + (miles * rate);
-    });
-  }
 
   List<Map<String, String>> formatMileageForExport(
       List<Map<String, dynamic>> mileage) {

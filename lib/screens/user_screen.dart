@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_info.dart';
 import '../theme/app_themes.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
@@ -31,7 +32,7 @@ class UserScreenState extends State<UserScreen> {
                 ),
               ),
               SizedBox(height: 8),
-              Text('Version 1.0.18'),
+              Text('Version ${AppInfo.version}'),
               SizedBox(height: 16),
               Text(
                 'A financial assistant for rideshare and gig economy drivers to track mileage, income, expenses, and calculate quarterly estimated tax obligations.',

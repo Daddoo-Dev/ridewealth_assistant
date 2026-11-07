@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_themes.dart';
+import '../widgets/quarter_totals.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
@@ -58,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              QuarterTotals(),
               SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.all(16.0),
